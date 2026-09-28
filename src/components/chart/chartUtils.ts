@@ -9,6 +9,8 @@ export function tickClock(tick: number): string {
 
 export type Period = '1D' | '1W' | '1M';
 
+export const PERIOD_LABEL: Record<Period, string> = { '1D': '1일', '1W': '1주', '1M': '1달' };
+
 /** 1D = today's session (from previous close), 1W = last 7 sessions, 1M = everything. */
 export function sliceForPeriod(series: readonly PricePoint[], period: Period): PricePoint[] {
   if (period === '1M') return [...series];

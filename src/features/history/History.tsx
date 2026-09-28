@@ -16,13 +16,13 @@ export function History() {
         <caption className="sr-only">거래 내역</caption>
         <thead>
           <tr className="label border-b border-[var(--color-line)] [&>th]:px-4 [&>th]:py-2 [&>th]:font-normal">
-            <th>DAY</th>
-            <th>SIDE</th>
-            <th>STOCK</th>
-            <th className="text-right">SHARES</th>
-            <th className="text-right">PRICE</th>
-            <th className="text-right">TOTAL</th>
-            <th className="text-right">REALIZED P&L</th>
+            <th>날짜</th>
+            <th>구분</th>
+            <th>종목</th>
+            <th className="text-right">수량</th>
+            <th className="text-right">체결가</th>
+            <th className="text-right">거래금액</th>
+            <th className="text-right">실현손익</th>
           </tr>
         </thead>
         <tbody className="num text-[13px]">
@@ -33,7 +33,7 @@ export function History() {
                 <SideTag type={t.type} settlement={t.settlement} />
               </td>
               <td className="font-bold">{t.ticker}</td>
-              <td className="text-right">{t.shares.toLocaleString('ko-KR')}</td>
+              <td className="text-right">{t.shares.toLocaleString('ko-KR')}주</td>
               <td className="text-right">{formatKRW(t.price)}</td>
               <td className="text-right">{formatKRW(t.total)}</td>
               <td className={`text-right ${t.realizedPnL === undefined ? 'text-[var(--color-dim)]' : t.realizedPnL >= 0 ? 'text-up' : 'text-down'}`}>
@@ -54,7 +54,7 @@ export function History() {
                 <span className="font-mono text-sm font-bold">{t.ticker}</span>
               </div>
               <div className="num mt-0.5 text-[11px] text-[var(--color-dim)]">
-                {t.shares.toLocaleString('ko-KR')} shares @ {formatKRW(t.price)} · {getStock(t.stockId)?.name}
+                {t.shares.toLocaleString('ko-KR')}주 × {formatKRW(t.price)} · {getStock(t.stockId)?.name}
               </div>
             </div>
             <div className="text-right">
@@ -77,7 +77,7 @@ function SideTag({ type, settlement }: { type: 'BUY' | 'SELL'; settlement?: bool
         type === 'BUY' ? 'bg-[var(--color-up-soft)] text-up' : 'bg-[var(--color-down-soft)] text-down'
       }`}
     >
-      {type === 'BUY' ? '▲ BUY' : settlement ? '▼ SETTLE' : '▼ SELL'}
+      {type === 'BUY' ? '▲ 매수' : settlement ? '▼ 정산' : '▼ 매도'}
     </span>
   );
 }

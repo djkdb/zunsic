@@ -28,7 +28,7 @@ export function Button({
   return (
     <button
       type={type}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg font-mono font-semibold tracking-wider uppercase transition-[background,filter,color,transform] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-lg font-mono font-semibold tracking-wide uppercase transition-[background,filter,color,transform] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
       {...rest}
     />
   );

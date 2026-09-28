@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { DIFFICULTY_IDS } from '@/data/difficulties';
+import { DIFFICULTY_LABEL } from '@/lib/labels';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useGameStore } from '@/store/gameStore';
@@ -21,65 +22,65 @@ export function SettingsScreen() {
     <div className="min-h-dvh">
       <div className="mx-auto flex max-w-2xl flex-col gap-5 px-4 py-10">
         <button type="button" onClick={() => navigate(-1)} className="self-start font-mono text-xs text-[var(--color-muted)]">
-          ◂ BACK
+          ◂ 뒤로
         </button>
-        <h1 className="font-mono text-3xl font-extrabold">SETTINGS</h1>
+        <h1 className="font-mono text-3xl font-extrabold">설정</h1>
 
-        <Group title="MOTION">
+        <Group title="화면 효과">
           <Choice<Settings['reducedMotion']>
-            label="Reduced motion"
-            description="애니메이션을 최소화합니다. SYSTEM은 기기 설정을 따릅니다."
+            label="애니메이션 줄이기"
+            description="움직임을 최소화합니다. '기기 설정'은 휴대폰/PC 설정을 따릅니다."
             value={settings.reducedMotion}
             options={[
-              ['system', 'SYSTEM'],
-              ['on', 'ON'],
-              ['off', 'OFF'],
+              ['system', '기기 설정'],
+              ['on', '켜기'],
+              ['off', '끄기'],
             ]}
             onChange={(v) => update({ reducedMotion: v })}
           />
           <Choice<'on' | 'off'>
-            label="Fast transitions"
+            label="빠른 연출"
             description="장 시작/마감 연출을 빠르게 진행합니다."
             value={settings.fastMode ? 'on' : 'off'}
             options={[
-              ['off', 'OFF'],
-              ['on', 'ON'],
+              ['off', '끄기'],
+              ['on', '켜기'],
             ]}
             onChange={(v) => update({ fastMode: v === 'on' })}
           />
         </Group>
 
-        <Group title="GAME">
+        <Group title="게임">
           <Choice
-            label="Default difficulty"
-            description="새 게임 설정 화면의 기본 난이도."
+            label="기본 난이도"
+            description="새 게임 설정 화면에서 기본으로 선택되는 난이도."
             value={settings.difficulty}
-            options={DIFFICULTY_IDS.map((d) => [d, d] as const)}
+            options={DIFFICULTY_IDS.map((d) => [d, DIFFICULTY_LABEL[d]] as const)}
             onChange={(v) => update({ difficulty: v })}
           />
           {game && game.phase !== 'RESULT' && (
             <div className="flex items-center justify-between gap-3 py-3">
               <div>
-                <div className="text-sm font-semibold">Abandon current game</div>
+                <div className="text-sm font-semibold">현재 게임 포기</div>
                 <div className="text-[12px] text-[var(--color-dim)]">
-                  DAY {game.day}/{game.totalDays} · SEED {game.seed}
+                  {game.day}/{game.totalDays}일차 · 시드 {game.seed}
                 </div>
               </div>
               <Button variant="danger" size="sm" onClick={() => setAbandon(true)}>
-                ABANDON
+                포기
               </Button>
             </div>
           )}
         </Group>
 
-        <Group title="DATA">
+        <Group title="데이터">
           <div className="flex items-center justify-between gap-3 py-3">
             <div>
-              <div className="text-sm font-semibold text-[var(--color-down)]">RESET ALL DATA</div>
+              <div className="text-sm font-semibold text-[var(--color-down)]">모든 데이터 초기화</div>
               <div className="text-[12px] text-[var(--color-dim)]">진행 중인 게임, 업적, 개인 기록, 설정을 모두 삭제합니다.</div>
             </div>
             <Button variant="danger" size="sm" onClick={() => setStep(1)}>
-              RESET
+              초기화
             </Button>
           </div>
         </Group>
@@ -88,25 +89,25 @@ export function SettingsScreen() {
           MARKET//30은 가상 금융 시뮬레이션 게임입니다. 실제 증권 계좌·주문·결제·투자 추천 기능은 없으며, 모든 데이터는 이 브라우저에만 저장됩니다.
         </p>
         <Link to="/" className="font-mono text-xs text-[var(--color-muted)] underline">
-          HOME
+          홈으로
         </Link>
       </div>
 
       <Modal open={step > 0} onClose={() => setStep(0)} labelledBy="reset-title" className="w-full max-w-sm">
         <div className="rounded-2xl border border-[var(--color-down)]/60 bg-[var(--color-panel)] p-5">
           <h2 id="reset-title" className="font-mono text-lg font-bold text-[var(--color-down)]">
-            {step === 1 ? 'RESET ALL DATA?' : 'ARE YOU ABSOLUTELY SURE?'}
+            {step === 1 ? '모든 데이터를 초기화할까요?' : '정말로 삭제하시겠습니까?'}
           </h2>
           <p className="mt-2 text-sm text-[var(--color-muted)]">
             {step === 1 ? '모든 게임 데이터가 삭제됩니다.' : '이 작업은 되돌릴 수 없습니다. 업적과 개인 기록도 사라집니다.'}
           </p>
           <div className="mt-5 grid grid-cols-2 gap-2">
             <Button variant="outline" onClick={() => setStep(0)} data-autofocus>
-              CANCEL
+              취소
             </Button>
             {step === 1 ? (
               <Button variant="danger" onClick={() => setStep(2)}>
-                CONTINUE
+                계속
               </Button>
             ) : (
               <Button
@@ -117,7 +118,7 @@ export function SettingsScreen() {
                   navigate('/');
                 }}
               >
-                DELETE ALL
+                전부 삭제
               </Button>
             )}
           </div>
@@ -127,12 +128,12 @@ export function SettingsScreen() {
       <Modal open={abandon} onClose={() => setAbandon(false)} labelledBy="abandon-title" className="w-full max-w-sm">
         <div className="rounded-2xl border border-[var(--color-line-strong)] bg-[var(--color-panel)] p-5">
           <h2 id="abandon-title" className="font-mono text-lg font-bold">
-            ABANDON GAME?
+            게임을 포기할까요?
           </h2>
           <p className="mt-2 text-sm text-[var(--color-muted)]">현재 게임 진행이 삭제됩니다. 기록에는 남지 않습니다.</p>
           <div className="mt-5 grid grid-cols-2 gap-2">
             <Button variant="outline" onClick={() => setAbandon(false)} data-autofocus>
-              CANCEL
+              취소
             </Button>
             <Button
               variant="danger"
@@ -142,7 +143,7 @@ export function SettingsScreen() {
                 navigate('/');
               }}
             >
-              ABANDON
+              포기하기
             </Button>
           </div>
         </div>

@@ -21,9 +21,9 @@ export function DailyReportModal() {
       <div className="max-h-[88dvh] overflow-y-auto rounded-2xl border border-[var(--color-line-strong)] bg-[var(--color-panel)] scrollbar-thin">
         <div className="flex items-center justify-between border-b border-[var(--color-line)] px-5 py-4">
           <div>
-            <div className="label">DAILY REPORT</div>
+            <div className="label">일일 리포트 · DAILY REPORT</div>
             <h2 id="report-title" className="num text-2xl font-extrabold">
-              DAY {String(game.day).padStart(2, '0')} SUMMARY
+              {game.day}일차 결산
             </h2>
           </div>
           {report && <MarketStateBadge state={report.marketState} showMood />}
@@ -34,20 +34,20 @@ export function DailyReportModal() {
         ) : (
           <div className="space-y-4 p-5">
             <div className="grid grid-cols-2 gap-3">
-              <Metric label="MARKET" value={<PriceChange value={report.marketChange} className="text-xl font-bold" />} />
-              <Metric label="YOUR PORTFOLIO" value={<PriceChange value={report.portfolioChange} className="text-xl font-bold" />} />
+              <Metric label="시장" value={<PriceChange value={report.marketChange} className="text-xl font-bold" />} />
+              <Metric label="내 포트폴리오" value={<PriceChange value={report.portfolioChange} className="text-xl font-bold" />} />
             </div>
             <div className="flex items-center justify-between rounded-lg bg-[var(--color-panel-2)] px-4 py-3">
-              <span className="label">PORTFOLIO VALUE</span>
+              <span className="label">포트폴리오 평가액</span>
               <span className="text-right">
                 <span className="num block text-lg font-bold">{formatKRW(report.portfolioValue)}</span>
-                <span className={`num text-[11px] ${trendClass(pnl)}`}>{formatKRW(pnl, { sign: true })} today</span>
+                <span className={`num text-[11px] ${trendClass(pnl)}`}>오늘 {formatKRW(pnl, { sign: true })}</span>
               </span>
             </div>
             <div className="grid grid-cols-2 gap-3">
               {report.best && (
                 <Metric
-                  label="BEST PERFORMER"
+                  label="최고 상승 종목"
                   value={
                     <span className="font-mono text-sm font-bold">
                       {getStock(report.best.stockId)?.ticker} <PriceChange value={report.best.change} className="text-sm" />
@@ -57,7 +57,7 @@ export function DailyReportModal() {
               )}
               {report.worst && (
                 <Metric
-                  label="WORST PERFORMER"
+                  label="최대 하락 종목"
                   value={
                     <span className="font-mono text-sm font-bold">
                       {getStock(report.worst.stockId)?.ticker} <PriceChange value={report.worst.change} className="text-sm" />
@@ -67,7 +67,7 @@ export function DailyReportModal() {
               )}
             </div>
             <div>
-              <div className="label mb-1.5">TODAY&apos;S NEWS</div>
+              <div className="label mb-1.5">오늘의 뉴스</div>
               {news.length ? (
                 <ul className="space-y-1.5">
                   {news.slice(0, 5).map((n) => (
@@ -84,15 +84,15 @@ export function DailyReportModal() {
               )}
             </div>
             <div className="flex items-center justify-between text-[12px]">
-              <span className="label">TRADES TODAY</span>
-              <span className="num font-semibold">{report.tradeCount}</span>
+              <span className="label">오늘 거래 횟수</span>
+              <span className="num font-semibold">{report.tradeCount}회</span>
             </div>
           </div>
         )}
 
         <div className="border-t border-[var(--color-line)] p-4">
           <Button variant={last ? 'amber' : 'primary'} size="lg" className="w-full" onClick={next} data-autofocus>
-            {last ? 'FINAL SETTLEMENT ▸' : `DAY ${String(game.day + 1).padStart(2, '0')} ▸ MARKET OPEN`}
+            {last ? '최종 정산 ▸' : `${game.day + 1}일차 장 시작 ▸`}
           </Button>
           {last && <p className="mt-2 text-center text-[11px] text-[var(--color-dim)]">모든 보유 종목은 최종 가격으로 자동 정산됩니다.</p>}
         </div>

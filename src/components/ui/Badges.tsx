@@ -1,6 +1,6 @@
-import { MARKET_STATES } from '@/data/marketStates';
 import type { MarketStateId, RiskLevel } from '@/domain/types';
 import type { PortfolioRiskLevel } from '@/engine/portfolioEngine';
+import { MARKET_MOOD_LABEL, MARKET_STATE_LABEL, RISK_LABEL } from '@/lib/labels';
 
 const RISK_STYLE: Record<RiskLevel | 'NONE', string> = {
   NONE: 'text-[var(--color-dim)] border-[var(--color-line-strong)]',
@@ -13,8 +13,7 @@ const RISK_STYLE: Record<RiskLevel | 'NONE', string> = {
 export function RiskBadge({ level, prefix = '' }: { level: RiskLevel | PortfolioRiskLevel; prefix?: string }) {
   return (
     <span className={`inline-flex items-center rounded border px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider ${RISK_STYLE[level]}`}>
-      {prefix}
-      {level === 'NONE' ? 'NO POSITION' : level}
+      {level === 'NONE' ? RISK_LABEL.NONE : `${prefix}${RISK_LABEL[level]}`}
     </span>
   );
 }
@@ -31,14 +30,13 @@ const STATE_STYLE: Record<MarketStateId, string> = {
 const STATE_ICON: Record<MarketStateId, string> = { BULL: '▲', RALLY: '⇈', NEUTRAL: '■', BEAR: '▼', CRASH: '⇊', VOLATILE: '≈' };
 
 export function MarketStateBadge({ state, showMood }: { state: MarketStateId; showMood?: boolean }) {
-  const cfg = MARKET_STATES[state];
   return (
     <span
       className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-wider ${STATE_STYLE[state]}`}
-      title={`Market regime: ${cfg.label} (${cfg.mood})`}
+      title={`시장 상태: ${MARKET_STATE_LABEL[state]} (${MARKET_MOOD_LABEL[state]})`}
     >
       <span aria-hidden="true">{STATE_ICON[state]}</span>
-      {showMood ? cfg.mood : cfg.label}
+      {showMood ? MARKET_MOOD_LABEL[state] : MARKET_STATE_LABEL[state]}
     </span>
   );
 }

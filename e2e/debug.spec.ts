@@ -11,7 +11,7 @@ test('19: debug mode — inspect state and trigger events', async ({ page }) => 
 
   // Trigger crash → next day in CRASH state with breaking overlay
   await panel.getByRole('button', { name: 'Trigger Crash' }).click();
-  await expect(page.getByText('MARKET ALERT')).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText('시장 경보', { exact: true })).toBeVisible({ timeout: 10_000 });
   await page.screenshot({ path: 'e2e/screenshots/debug-crash.png' });
   await expect(panel.getByTestId('debug-state')).toHaveText('CRASH');
   await settle(page);
@@ -19,7 +19,7 @@ test('19: debug mode — inspect state and trigger events', async ({ page }) => 
 
   // Trigger bull
   await panel.getByRole('button', { name: 'Trigger Bull' }).click();
-  await expect(page.getByText('MARKET SURGE')).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText('시장 급등', { exact: true })).toBeVisible({ timeout: 10_000 });
   await expect(panel.getByTestId('debug-state')).toHaveText('RALLY');
   await settle(page);
 
@@ -30,5 +30,5 @@ test('19: debug mode — inspect state and trigger events', async ({ page }) => 
   await expect(panel.getByTestId('debug-day')).toHaveText('25/30');
   await panel.getByRole('button', { name: 'Finish Game' }).click();
   await page.waitForURL(/#\/result/, { timeout: 15_000 });
-  await expect(page.getByText('MARKET CLOSED').first()).toBeVisible();
+  await expect(page.getByText('장 마감', { exact: true }).first()).toBeVisible();
 });

@@ -10,6 +10,7 @@ import { directionSymbol, formatKRW, formatPct, trendClass } from '@/lib/format'
 import { useIsDesktop } from '@/hooks/useMediaQuery';
 import { useTimeScale } from '@/hooks/useMotion';
 import { useGameStore } from '@/store/gameStore';
+import { SEVERITY_LABEL } from '@/lib/labels';
 import { computeIndex } from '@/engine/marketEngine';
 
 /**
@@ -72,7 +73,7 @@ export function BreakingNewsOverlay() {
           <div className="flex w-max animate-ticker font-mono text-[11px] font-bold tracking-[0.3em] whitespace-nowrap" style={{ color: accent }} aria-hidden="true">
             {Array.from({ length: 12 }, (_, i) => (
               <span key={i} className="mx-6">
-                BREAKING NEWS ●
+                속보 · BREAKING NEWS ●
               </span>
             ))}
           </div>
@@ -82,10 +83,10 @@ export function BreakingNewsOverlay() {
           {/* 2. badge */}
           {stage >= 2 && (
             <div className="flex animate-stamp items-center gap-2">
-              <span className="rounded px-2 py-1 font-mono text-xs font-extrabold tracking-[0.25em] text-[#120c02]" style={{ background: accent }}>
-                {marketEvent ? (bearish ? 'MARKET ALERT' : 'MARKET SURGE') : 'BREAKING NEWS'}
+              <span className="rounded px-2 py-1 font-mono text-xs font-extrabold tracking-[0.1em] text-[#120c02]" style={{ background: accent }}>
+                {marketEvent ? (bearish ? '시장 경보' : '시장 급등') : '속보'}
               </span>
-              <span className="font-mono text-[11px] text-[var(--color-dim)]">DAY {String(game.day).padStart(2, '0')} · {main.severity}</span>
+              <span className="font-mono text-[11px] text-[var(--color-dim)]">{game.day}일차 · 영향도 {SEVERITY_LABEL[main.severity]}</span>
             </div>
           )}
           {/* 3. headline */}
@@ -97,7 +98,7 @@ export function BreakingNewsOverlay() {
               <p className="mt-2 text-sm text-[var(--color-muted)]">{main.summary}</p>
               {data.others.map((o) => (
                 <p key={o.id} className="mt-2 font-mono text-[12px] text-[var(--color-muted)]">
-                  <span className="text-[var(--color-amber)]">ALSO ▸</span> {o.title}
+                  <span className="text-[var(--color-amber)]">추가 ▸</span> {o.title}
                 </p>
               ))}
             </div>
@@ -107,7 +108,7 @@ export function BreakingNewsOverlay() {
           {stage >= 4 && (
             <div className="mt-5 grid animate-rise-in grid-cols-2 gap-2 sm:grid-cols-3">
               {marketEvent && (
-                <MoveTile label="MARKET INDEX" from={0} to={data.indexChange} revealed={stage >= 5} />
+                <MoveTile label="시장 지수" from={0} to={data.indexChange} revealed={stage >= 5} />
               )}
               {data.affected.map((id) => {
                 const s = getStock(id);
@@ -120,7 +121,7 @@ export function BreakingNewsOverlay() {
           {/* 6. portfolio impact */}
           {stage >= 6 && data.hasPositions && (
             <div className="mt-5 flex animate-rise-in flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--color-line-strong)] bg-[var(--color-panel-2)] px-4 py-3">
-              <span className="label">YOUR PORTFOLIO</span>
+              <span className="label">내 포트폴리오</span>
               <div className="flex items-center gap-2 font-mono">
                 <span className="num text-sm text-[var(--color-muted)]">{formatKRW(data.before)}</span>
                 <span className="text-[var(--color-dim)]">→</span>
@@ -137,22 +138,22 @@ export function BreakingNewsOverlay() {
             <div className="mt-6 animate-rise-in">
               {decision && data.hasPositions ? (
                 <>
-                  <div className="label mb-2 text-center">WHAT&apos;S YOUR MOVE?</div>
+                  <div className="label mb-2 text-center">당신의 선택은?</div>
                   <div className="grid grid-cols-3 gap-2">
                     <Button variant="outline" size="lg" onClick={dismissNews} data-autofocus>
-                      HOLD
+                      보유 유지
                     </Button>
                     <Button variant="sell" size="lg" onClick={() => (confirmSell ? sellAll() : setConfirmSell(true))}>
-                      {confirmSell ? 'CONFIRM?' : 'SELL ALL'}
+                      {confirmSell ? '정말 매도?' : '전량 매도'}
                     </Button>
                     <Button variant="buy" size="lg" onClick={goMarket}>
-                      BUY THE DIP
+                      저점 매수
                     </Button>
                   </div>
                 </>
               ) : (
                 <Button variant="primary" size="lg" className="w-full" onClick={dismissNews} data-autofocus>
-                  CONTINUE TRADING ▸
+                  거래 계속하기 ▸
                 </Button>
               )}
             </div>
@@ -174,7 +175,7 @@ function MoveTile({ label, sub, to, revealed, held }: { label: string; sub?: str
     >
       <div className="flex items-center justify-between">
         <span className="font-mono text-sm font-extrabold">{label}</span>
-        {held && <span className="rounded bg-[var(--color-info-soft)] px-1 font-mono text-[9px] font-bold text-[var(--color-info)]">HELD</span>}
+        {held && <span className="rounded bg-[var(--color-info-soft)] px-1 font-mono text-[9px] font-bold text-[var(--color-info)]">보유</span>}
       </div>
       {sub && <div className="truncate text-[10px] text-[var(--color-dim)]">{sub}</div>}
       <div className={`num mt-1 text-2xl font-extrabold ${tone}`}>

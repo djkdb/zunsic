@@ -26,7 +26,7 @@ export function OrderPanel({ stockId, initialSide = 'BUY', onExecuted, showStock
 
   if (!game) return null;
   const stock = getStock(stockId);
-  if (!stock) return <div className="panel p-4 text-sm text-[var(--color-down)]">ERROR: 존재하지 않는 종목</div>;
+  if (!stock) return <div className="panel p-4 text-sm text-[var(--color-down)]">오류: 존재하지 않는 종목</div>;
 
   const price = game.prices[stock.id] ?? 0;
   const holding = game.holdings[stock.id];
@@ -66,7 +66,7 @@ export function OrderPanel({ stockId, initialSide = 'BUY', onExecuted, showStock
               setSide(s);
               setQtyText('');
             }}
-            className={`h-11 rounded-md font-mono text-sm font-extrabold tracking-[0.15em] transition-colors ${
+            className={`h-11 rounded-md font-mono text-sm font-extrabold tracking-[0.06em] transition-colors ${
               side === s
                 ? s === 'BUY'
                   ? 'bg-[var(--color-up)] text-[#04140b]'
@@ -74,7 +74,7 @@ export function OrderPanel({ stockId, initialSide = 'BUY', onExecuted, showStock
                 : 'text-[var(--color-muted)] hover:bg-[var(--color-panel-2)]'
             }`}
           >
-            {s === 'BUY' ? '▲ BUY' : '▼ SELL'}
+            {s === 'BUY' ? '▲ 매수' : '▼ 매도'}
           </button>
         ))}
       </div>
@@ -110,10 +110,10 @@ export function OrderPanel({ stockId, initialSide = 'BUY', onExecuted, showStock
         <div>
           <div className="mb-1 flex items-center justify-between">
             <label htmlFor={inputId} className="label">
-              QUANTITY
+              수량
             </label>
             <span className="num text-[11px] text-[var(--color-dim)]">
-              {isBuy ? 'MAX BUY' : 'HOLDING'} {max.toLocaleString('ko-KR')}
+              {isBuy ? '최대 매수' : '보유'} {max.toLocaleString('ko-KR')}주
             </span>
           </div>
           <div key={shake} className={`flex items-stretch gap-1.5 ${shake ? 'animate-shake' : ''}`}>
@@ -149,40 +149,40 @@ export function OrderPanel({ stockId, initialSide = 'BUY', onExecuted, showStock
                 disabled={max === 0}
                 className="h-9 rounded-md bg-[var(--color-panel-2)] font-mono text-[11px] font-bold text-[var(--color-muted)] hover:text-[var(--color-ink)] disabled:opacity-40"
               >
-                {f === 1 ? (isBuy ? 'MAX' : 'ALL') : `${f * 100}%`}
+                {f === 1 ? (isBuy ? '최대' : '전량') : `${f * 100}%`}
               </button>
             ))}
           </div>
         </div>
 
         <dl className="space-y-1.5 rounded-md bg-[var(--color-panel-2)] p-3 font-mono text-[12px]">
-          <Row label={isBuy ? 'EST. COST' : 'EST. PROCEEDS'} value={preview ? formatKRW(preview.total) : '—'} strong />
+          <Row label={isBuy ? '예상 매수 금액' : '예상 매도 금액'} value={preview ? formatKRW(preview.total) : '—'} strong />
           {isBuy ? (
             <>
-              <Row label="CASH AFTER" value={preview ? formatKRW(preview.cashAfter) : formatKRW(game.cash)} />
-              <Row label="AVG PRICE AFTER" value={preview ? formatKRW(preview.avgPriceAfter) : holding ? formatKRW(holding.avgPrice) : '—'} />
-              <Row label="SHARES AFTER" value={preview ? preview.sharesAfter.toLocaleString('ko-KR') : held.toLocaleString('ko-KR')} />
+              <Row label="주문 후 현금" value={preview ? formatKRW(preview.cashAfter) : formatKRW(game.cash)} />
+              <Row label="주문 후 평균단가" value={preview ? formatKRW(preview.avgPriceAfter) : holding ? formatKRW(holding.avgPrice) : '—'} />
+              <Row label="주문 후 보유" value={`${(preview ? preview.sharesAfter : held).toLocaleString('ko-KR')}주`} />
             </>
           ) : (
             <>
               <Row
-                label="EXPECTED P&L"
+                label="예상 실현손익"
                 value={preview?.expectedPnL !== undefined ? `${formatKRW(preview.expectedPnL, { sign: true })} (${formatPct(holding ? price / holding.avgPrice - 1 : 0)})` : '—'}
                 tone={preview?.expectedPnL}
               />
-              <Row label="SHARES LEFT" value={preview ? preview.sharesAfter.toLocaleString('ko-KR') : held.toLocaleString('ko-KR')} />
-              <Row label="CASH AFTER" value={preview ? formatKRW(preview.cashAfter) : formatKRW(game.cash)} />
+              <Row label="남는 수량" value={`${(preview ? preview.sharesAfter : held).toLocaleString('ko-KR')}주`} />
+              <Row label="주문 후 현금" value={preview ? formatKRW(preview.cashAfter) : formatKRW(game.cash)} />
             </>
           )}
         </dl>
 
         <p id={errorId} role="alert" className="min-h-[1.25rem] text-[12px] text-[var(--color-down)]">
-          {error && qty !== null ? `⛔ BLOCKED — ${error.message}` : !canTrade ? '장이 열려 있지 않습니다.' : ''}
+          {error && qty !== null ? `⛔ 주문 불가 — ${error.message}` : !canTrade ? '장이 열려 있지 않습니다.' : ''}
         </p>
 
         <Button variant={isBuy ? 'buy' : 'sell'} size="lg" className="h-14 w-full text-base" onClick={submit} disabled={!canTrade}>
-          {isBuy ? `BUY ${stock.ticker}` : `SELL ${stock.ticker}`}
-          {preview && <span className="num font-normal opacity-80">× {preview.shares.toLocaleString('ko-KR')}</span>}
+          {isBuy ? `${stock.ticker} 매수` : `${stock.ticker} 매도`}
+          {preview && <span className="num font-normal opacity-80">{preview.shares.toLocaleString('ko-KR')}주</span>}
         </Button>
         <p className="text-center text-[10px] text-[var(--color-dim)]">가상 게임 머니 거래 · 실제 투자와 무관</p>
       </div>

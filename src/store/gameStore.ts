@@ -117,7 +117,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
   const fail = (e: unknown) => {
     console.error('[MARKET//30]', e);
     const message = e instanceof GameStateError ? '게임 상태 전환 오류가 발생했습니다.' : '시뮬레이션 오류가 발생했습니다.';
-    get().pushToast({ kind: 'error', title: 'SYSTEM ERROR', message });
+    get().pushToast({ kind: 'error', title: '시스템 오류', message });
   };
 
   /** Apply a new game state and unlock any achievements it earned. */
@@ -204,7 +204,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
       if (!g) return { ok: false, error: { code: 'GAME_OVER', message: '진행 중인 게임이 없습니다.' } };
       const r = executeOrder(g, order, STOCKS);
       if (!r.ok) {
-        get().pushToast({ kind: 'error', title: 'ORDER BLOCKED', message: r.error.message });
+        get().pushToast({ kind: 'error', title: '주문 불가', message: r.error.message });
         return r;
       }
       commit(r.value.state);
@@ -347,7 +347,7 @@ export function startPersistence(): () => void {
       warnedStorage = true;
       useGameStore.getState().pushToast({
         kind: 'error',
-        title: 'SAVE FAILED',
+        title: '저장 실패',
         message: '브라우저 저장소를 사용할 수 없어 진행 상황이 저장되지 않습니다.',
       });
     }

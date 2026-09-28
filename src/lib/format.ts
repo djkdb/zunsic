@@ -35,7 +35,7 @@ export function formatNumber(value: number): string {
 }
 
 export function formatDay(day: number): string {
-  return `DAY ${String(day).padStart(2, '0')}`;
+  return `${day}일차`;
 }
 
 /** ▲ / ▼ / ■ — direction is never conveyed by color alone. */

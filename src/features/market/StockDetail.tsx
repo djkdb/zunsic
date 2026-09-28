@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { getStock } from '@/data/stocks';
-import type { StockDefinition } from '@/domain/types';
-import { sliceForPeriod, type Period } from '@/components/chart/chartUtils';
+import { PERIOD_LABEL, sliceForPeriod, type Period } from '@/components/chart/chartUtils';
+import { RISK_LABEL, TREND_LABEL } from '@/lib/labels';
 import { PriceChart, type ChartMarker } from '@/components/chart/PriceChart';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { RiskBadge, TickerChip } from '@/components/ui/Badges';
@@ -12,17 +12,10 @@ import { displayHistory, displayPrices, getValuation, getVisibleNews } from '@/s
 import { NewsItemRow } from '@/features/news/NewsFeed';
 
 const PERIODS: { id: Period; label: string; hint: string }[] = [
-  { id: '1D', label: '1D', hint: '오늘' },
-  { id: '1W', label: '1W', hint: '최근 7일' },
-  { id: '1M', label: '1M', hint: '전체 기간' },
+  { id: '1D', label: PERIOD_LABEL['1D'], hint: '오늘' },
+  { id: '1W', label: PERIOD_LABEL['1W'], hint: '최근 7일' },
+  { id: '1M', label: PERIOD_LABEL['1M'], hint: '전체 기간' },
 ];
-
-const TREND_LABEL: Record<StockDefinition['trendBias'], string> = {
-  DECLINE: 'Decline',
-  STABLE: 'Stable',
-  GROWTH: 'Growth',
-  HYPER_GROWTH: 'Hyper-growth',
-};
 
 interface StockDetailProps {
   stockId: string;
@@ -48,7 +41,7 @@ export function StockDetail({ stockId, chartHeight = 300 }: StockDetailProps) {
 
   if (!game) return null;
   if (!stock) {
-    return <div className="panel p-6 text-sm text-[var(--color-down)]">ERROR: 존재하지 않는 종목입니다.</div>;
+    return <div className="panel p-6 text-sm text-[var(--color-down)]">오류: 존재하지 않는 종목입니다.</div>;
   }
 
   const { prices, prev } = displayPrices(game);
@@ -69,7 +62,7 @@ export function StockDetail({ stockId, chartHeight = 300 }: StockDetailProps) {
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <TickerChip ticker={stock.ticker} />
-            <RiskBadge level={stock.riskLevel} prefix="RISK " />
+            <RiskBadge level={stock.riskLevel} prefix="위험 " />
             <span className="label">{stock.sector}</span>
           </div>
           <h2 id={`stock-${stock.id}`} className="mt-1.5 truncate font-mono text-xl font-extrabold tracking-tight sm:text-2xl">
@@ -103,10 +96,10 @@ export function StockDetail({ stockId, chartHeight = 300 }: StockDetailProps) {
           </div>
           <div className="flex items-center gap-3 font-mono text-[11px] text-[var(--color-dim)]">
             <span>
-              H <span className="text-[var(--color-muted)]">{formatKRW(hi)}</span>
+              고가 <span className="text-[var(--color-muted)]">{formatKRW(hi)}</span>
             </span>
             <span>
-              L <span className="text-[var(--color-muted)]">{formatKRW(lo)}</span>
+              저가 <span className="text-[var(--color-muted)]">{formatKRW(lo)}</span>
             </span>
             <PriceChange value={periodChange} className="text-[11px]" />
           </div>
@@ -115,23 +108,23 @@ export function StockDetail({ stockId, chartHeight = 300 }: StockDetailProps) {
           points={points}
           markers={markers}
           height={chartHeight}
-          reference={position ? { value: position.avgPrice, label: `AVG ${formatKRW(position.avgPrice)}` } : undefined}
-          ariaLabel={`${stock.name} ${period} 가격 차트`}
+          reference={position ? { value: position.avgPrice, label: `평균단가 ${formatKRW(position.avgPrice)}` } : undefined}
+          ariaLabel={`${stock.name} ${PERIOD_LABEL[period]} 가격 차트`}
         />
         <div className="mt-1 flex items-center gap-4 font-mono text-[10px] text-[var(--color-dim)]">
-          <span><span className="text-up">▲</span> BUY</span>
-          <span><span className="text-down">▼</span> SELL</span>
-          {position && <span className="text-[var(--color-info)]">- - AVG PRICE</span>}
+          <span><span className="text-up">▲</span> 매수</span>
+          <span><span className="text-down">▼</span> 매도</span>
+          {position && <span className="text-[var(--color-info)]">- - 평균단가</span>}
         </div>
       </div>
 
       {/* Position */}
       <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[10px] border border-[var(--color-line)] bg-[var(--color-line)] sm:grid-cols-4">
-        <Stat label="SHARES" value={position ? `${position.shares.toLocaleString('ko-KR')}` : '—'} />
-        <Stat label="AVG PRICE" value={position ? formatKRW(position.avgPrice) : '—'} />
-        <Stat label="VALUE" value={position ? formatKRW(position.value) : '—'} />
+        <Stat label="보유 수량" value={position ? `${position.shares.toLocaleString('ko-KR')}주` : '—'} />
+        <Stat label="평균단가" value={position ? formatKRW(position.avgPrice) : '—'} />
+        <Stat label="평가금액" value={position ? formatKRW(position.value) : '—'} />
         <Stat
-          label="P&L"
+          label="평가손익"
           value={position ? `${formatKRW(position.pnl, { sign: true })}` : '—'}
           sub={position ? formatPct(position.pnlPct) : undefined}
           tone={position ? position.pnl : 0}
@@ -141,20 +134,20 @@ export function StockDetail({ stockId, chartHeight = 300 }: StockDetailProps) {
       {/* Profile + news */}
       <div className="grid gap-4 xl:grid-cols-2">
         <div className="panel p-4">
-          <h3 className="label mb-2">COMPANY PROFILE</h3>
+          <h3 className="label mb-2">기업 정보</h3>
           <p className="text-sm leading-relaxed text-[var(--color-muted)]">{stock.description}</p>
           <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 font-mono text-xs">
-            <Def term="SECTOR" value={stock.sector} />
-            <Def term="RISK" value={stock.riskLevel} />
-            <Def term="BASE TREND" value={TREND_LABEL[stock.trendBias]} />
-            <Def term="VOLATILITY" value={`${(stock.volatility * 100).toFixed(1)}% / day`} />
-            <Def term="MARKET BETA" value={stock.beta.toFixed(2)} />
-            <Def term="NEWS SENSITIVITY" value={`×${stock.eventSensitivity.toFixed(2)}`} />
+            <Def term="업종" value={stock.sector} />
+            <Def term="위험도" value={RISK_LABEL[stock.riskLevel]} />
+            <Def term="기본 추세" value={TREND_LABEL[stock.trendBias]} />
+            <Def term="일일 변동성" value={`${(stock.volatility * 100).toFixed(1)}%`} />
+            <Def term="시장 민감도(베타)" value={stock.beta.toFixed(2)} />
+            <Def term="뉴스 민감도" value={`×${stock.eventSensitivity.toFixed(2)}`} />
           </dl>
           <p className="mt-3 text-[11px] text-[var(--color-dim)]">※ 완전히 가상의 기업입니다. 실제 기업·종목과 무관합니다.</p>
         </div>
         <div className="panel p-4">
-          <h3 className="label mb-2">RECENT NEWS · {stock.ticker}</h3>
+          <h3 className="label mb-2">최근 뉴스 · {stock.ticker}</h3>
           {news.length === 0 ? (
             <p className="py-4 text-sm text-[var(--color-dim)]">아직 관련 뉴스가 없습니다.</p>
           ) : (

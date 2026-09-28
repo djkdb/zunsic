@@ -39,7 +39,7 @@ function ToastItem({ toast }: { toast: Toast }) {
       </span>
       <div className="min-w-0 flex-1">
         <div className={`font-mono text-xs font-bold tracking-wider ${style.label}`}>
-          {toast.kind === 'achievement' ? `ACHIEVEMENT UNLOCKED · ${toast.title}` : toast.title}
+          {toast.kind === 'achievement' ? `업적 달성 · ${toast.title}` : toast.title}
         </div>
         {toast.message && <div className="mt-0.5 text-[12px] text-[var(--color-muted)]">{toast.message}</div>}
       </div>

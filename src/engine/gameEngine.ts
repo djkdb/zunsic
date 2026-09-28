@@ -185,11 +185,11 @@ function eventToNews(ev: ScheduledEvent, changes: Record<string, number>, market
 
 function regimeNews(day: number, state: MarketStateId, marketChange: number): NewsItem {
   const text: Partial<Record<MarketStateId, { title: string; summary: string }>> = {
-    BULL: { title: 'BUYERS RETURN — MARKET SENTIMENT TURNS BULLISH', summary: '매수세가 살아나며 시장 분위기가 강세로 전환됐다.' },
-    BEAR: { title: 'SELLERS TAKE CONTROL — SENTIMENT TURNS BEARISH', summary: '매도 우위가 이어지며 시장 분위기가 약세로 기울었다.' },
-    VOLATILE: { title: 'VOLATILITY SPIKES AS TRADERS GROW NERVOUS', summary: '투자자 불안이 커지며 시장 변동성이 확대됐다.' },
+    BULL: { title: '매수세 복귀… 시장 분위기 강세 전환', summary: '매수세가 살아나며 시장 분위기가 강세로 전환됐다.' },
+    BEAR: { title: '매도 우위 지속… 시장 분위기 약세 전환', summary: '매도 우위가 이어지며 시장 분위기가 약세로 기울었다.' },
+    VOLATILE: { title: '투자자 불안 확산… 변동성 급등', summary: '투자자 불안이 커지며 시장 변동성이 확대됐다.' },
   };
-  const t = text[state] ?? { title: 'MARKET UPDATE', summary: '' };
+  const t = text[state] ?? { title: '시장 동향', summary: '' };
   return {
     id: `regime-${day}`,
     day,

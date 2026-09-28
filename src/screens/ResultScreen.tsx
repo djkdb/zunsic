@@ -9,6 +9,7 @@ import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { RiskBadge } from '@/components/ui/Badges';
 import { Button } from '@/components/ui/Button';
 import { directionSymbol, formatKRW, formatPct, trendClass } from '@/lib/format';
+import { DIFFICULTY_LABEL } from '@/lib/labels';
 import { useTimeScale } from '@/hooks/useMotion';
 import { useDelayedValue } from '@/hooks/useDelayedValue';
 import { useGameStore } from '@/store/gameStore';
@@ -67,7 +68,7 @@ export function ResultScreen() {
     style: style.label,
     score: stats.score.total,
     rank: stats.score.rank,
-    difficulty: game.difficulty,
+    difficulty: DIFFICULTY_LABEL[game.difficulty],
     values: valuePoints.map((p) => p.price),
   };
 
@@ -79,22 +80,22 @@ export function ResultScreen() {
       <main className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8 sm:py-12">
         {/* 1. header */}
         <header className="text-center">
-          <div className="label animate-rise-in">{game.totalDays} DAYS COMPLETE</div>
-          <h1 className="mt-2 animate-stamp font-mono text-4xl font-extrabold tracking-[0.12em] sm:text-6xl">MARKET CLOSED</h1>
-          <div className="mt-1 font-mono text-sm tracking-[0.3em] text-[var(--color-muted)]">FINAL RESULT</div>
+          <div className="label animate-rise-in">{game.totalDays}일 완주 · MARKET CLOSED</div>
+          <h1 className="mt-2 animate-stamp font-mono text-4xl font-extrabold tracking-[0.06em] sm:text-6xl">장 마감</h1>
+          <div className="mt-1 font-mono text-sm tracking-[0.1em] text-[var(--color-muted)]">최종 결과</div>
         </header>
 
         {/* 2-4. capital → final → return */}
-        <section className="panel p-5 text-center sm:p-8" aria-label="Final result">
+        <section className="panel p-5 text-center sm:p-8" aria-label="최종 결과">
           {stage >= 2 && (
             <div className="animate-rise-in">
-              <div className="label">STARTING CAPITAL</div>
+              <div className="label">시작 자금</div>
               <div className="num text-xl text-[var(--color-muted)] sm:text-2xl">{formatKRW(stats.startingCapital)}</div>
             </div>
           )}
           {stage >= 3 && (
             <div className="mt-5 animate-rise-in">
-              <div className="label">FINAL VALUE</div>
+              <div className="label">최종 자산</div>
               <FinalValueCounter from={stats.startingCapital} to={stats.finalValue} />
             </div>
           )}
@@ -105,79 +106,79 @@ export function ResultScreen() {
             </div>
           )}
           {stage >= 5 && anyRecord && (
-            <div className="mt-4 inline-flex animate-stamp items-center gap-2 rounded-md border-2 border-[var(--color-amber)] px-4 py-1.5 font-mono text-lg font-extrabold tracking-[0.2em] text-[var(--color-amber)]">
-              ★ NEW RECORD
+            <div className="mt-4 inline-flex animate-stamp items-center gap-2 rounded-md border-2 border-[var(--color-amber)] px-4 py-1.5 font-mono text-lg font-extrabold tracking-[0.06em] text-[var(--color-amber)]">
+              ★ 신기록
             </div>
           )}
           {stage >= 5 && (
             <div className="mt-4 font-mono text-[12px] text-[var(--color-dim)]">
-              MARKET INDEX <span className={trendClass(stats.indexReturn)}>{formatPct(stats.indexReturn)}</span> ·{' '}
-              {stats.returnPct >= stats.indexReturn ? 'YOU BEAT THE MARKET' : 'THE MARKET BEAT YOU'}
+              시장 지수 <span className={trendClass(stats.indexReturn)}>{formatPct(stats.indexReturn)}</span> ·{' '}
+              {stats.returnPct >= stats.indexReturn ? '시장보다 높은 수익을 냈습니다' : '시장 수익률에 못 미쳤습니다'}
             </div>
           )}
         </section>
 
         {/* 5. stats */}
         {stage >= 6 && (
-          <section className="grid animate-rise-in grid-cols-2 gap-px overflow-hidden rounded-[10px] border border-[var(--color-line)] bg-[var(--color-line)] sm:grid-cols-4" aria-label="Performance">
-            <StatCell label="MAX DRAWDOWN" value={`-${(stats.drawdown.maxDrawdown * 100).toFixed(2)}%`} tone={-1} sub={stats.drawdown.maxDrawdown > 0 ? `${formatKRW(stats.drawdown.peak)} → ${formatKRW(stats.drawdown.trough)}` : 'NO DRAWDOWN'} />
+          <section className="grid animate-rise-in grid-cols-2 gap-px overflow-hidden rounded-[10px] border border-[var(--color-line)] bg-[var(--color-line)] sm:grid-cols-4" aria-label="성과 지표">
+            <StatCell label="최대 낙폭 (MDD)" value={`-${(stats.drawdown.maxDrawdown * 100).toFixed(2)}%`} tone={-1} sub={stats.drawdown.maxDrawdown > 0 ? `${formatKRW(stats.drawdown.peak)} → ${formatKRW(stats.drawdown.trough)}` : '낙폭 없음'} />
             <StatCell
-              label="BEST TRADE"
+              label="최고의 거래"
               value={stats.bestTrade ? formatKRW(stats.bestTrade.pnl, { sign: true }) : '—'}
               tone={stats.bestTrade?.pnl}
-              sub={stats.bestTrade ? `${getStock(stats.bestTrade.stockId)?.ticker} · DAY ${stats.bestTrade.day}` : undefined}
+              sub={stats.bestTrade ? `${getStock(stats.bestTrade.stockId)?.ticker} · ${stats.bestTrade.day}일차` : undefined}
             />
             <StatCell
-              label="WORST TRADE"
+              label="최악의 거래"
               value={stats.worstTrade ? formatKRW(stats.worstTrade.pnl, { sign: true }) : '—'}
               tone={stats.worstTrade?.pnl}
-              sub={stats.worstTrade ? `${getStock(stats.worstTrade.stockId)?.ticker} · DAY ${stats.worstTrade.day}` : undefined}
+              sub={stats.worstTrade ? `${getStock(stats.worstTrade.stockId)?.ticker} · ${stats.worstTrade.day}일차` : undefined}
             />
-            <StatCell label="WIN RATE" value={stats.sellCount ? `${(stats.winRate * 100).toFixed(0)}%` : '—'} sub={`${stats.sellCount} CLOSED TRADES`} />
-            <StatCell label="TOTAL TRADES" value={String(stats.totalTrades)} />
-            <StatCell label="BEST DAY" value={stats.bestDay ? formatKRW(stats.bestDay.change, { sign: true }) : '—'} tone={stats.bestDay?.change} sub={stats.bestDay ? `DAY ${stats.bestDay.day} · ${formatPct(stats.bestDay.pct)}` : undefined} />
-            <StatCell label="WORST DAY" value={stats.worstDay ? formatKRW(stats.worstDay.change, { sign: true }) : '—'} tone={stats.worstDay?.change} sub={stats.worstDay ? `DAY ${stats.worstDay.day} · ${formatPct(stats.worstDay.pct)}` : undefined} />
-            <StatCell label="PORTFOLIO RISK" value={<RiskBadge level={stats.riskLevel} />} sub={`AVG ${stats.avgRiskScore.toFixed(0)}/100`} />
+            <StatCell label="승률" value={stats.sellCount ? `${(stats.winRate * 100).toFixed(0)}%` : '—'} sub={`매도 ${stats.sellCount}회 기준`} />
+            <StatCell label="총 거래 횟수" value={`${stats.totalTrades}회`} />
+            <StatCell label="하루 최대 수익" value={stats.bestDay ? formatKRW(stats.bestDay.change, { sign: true }) : '—'} tone={stats.bestDay?.change} sub={stats.bestDay ? `${stats.bestDay.day}일차 · ${formatPct(stats.bestDay.pct)}` : undefined} />
+            <StatCell label="하루 최대 손실" value={stats.worstDay ? formatKRW(stats.worstDay.change, { sign: true }) : '—'} tone={stats.worstDay?.change} sub={stats.worstDay ? `${stats.worstDay.day}일차 · ${formatPct(stats.worstDay.pct)}` : undefined} />
+            <StatCell label="포트폴리오 위험도" value={<RiskBadge level={stats.riskLevel} />} sub={`평균 ${stats.avgRiskScore.toFixed(0)}/100`} />
           </section>
         )}
 
         {stage >= 6 && (
-          <section className="panel animate-rise-in p-4" aria-label="Portfolio value over time">
-            <div className="label mb-2">PORTFOLIO VALUE · 30 DAYS</div>
-            <PriceChart points={valuePoints} height={200} ariaLabel="포트폴리오 가치 변화" reference={{ value: stats.startingCapital, label: 'START' }} />
+          <section className="panel animate-rise-in p-4" aria-label="포트폴리오 가치 변화">
+            <div className="label mb-2">포트폴리오 평가액 · 30일</div>
+            <PriceChart points={valuePoints} height={200} ariaLabel="포트폴리오 가치 변화" reference={{ value: stats.startingCapital, label: '시작' }} />
           </section>
         )}
 
         {/* 6. style + score */}
         {stage >= 7 && (
           <div className="grid animate-rise-in gap-4 sm:grid-cols-2">
-            <section className="panel p-5" aria-label="Trading style">
-              <div className="label">YOUR TRADING STYLE</div>
+            <section className="panel p-5" aria-label="트레이딩 스타일">
+              <div className="label">나의 투자 스타일</div>
               <div className="mt-2 font-mono text-2xl font-extrabold text-[var(--color-amber)]">{style.label}</div>
               <p className="mt-2 text-sm text-[var(--color-muted)]">{style.description}</p>
-              {secondary && <p className="mt-2 font-mono text-[11px] text-[var(--color-dim)]">SECONDARY TRAIT · {secondary.label}</p>}
+              {secondary && <p className="mt-2 font-mono text-[11px] text-[var(--color-dim)]">보조 성향 · {secondary.label}</p>}
               <dl className="mt-3 grid grid-cols-2 gap-1 font-mono text-[10px] text-[var(--color-dim)]">
-                <div>AVG HOLD {stats.style.metrics.avgHoldingDays.toFixed(1)}d</div>
-                <div>HIGH-RISK {(stats.style.metrics.highRiskShare * 100).toFixed(0)}%</div>
-                <div>AVG STOCKS {stats.style.metrics.avgDistinct.toFixed(1)}</div>
-                <div>CASH {(stats.style.metrics.cashRatio * 100).toFixed(0)}%</div>
+                <div>평균 보유 {stats.style.metrics.avgHoldingDays.toFixed(1)}일</div>
+                <div>고위험 비중 {(stats.style.metrics.highRiskShare * 100).toFixed(0)}%</div>
+                <div>평균 보유 종목 {stats.style.metrics.avgDistinct.toFixed(1)}개</div>
+                <div>현금 비중 {(stats.style.metrics.cashRatio * 100).toFixed(0)}%</div>
               </dl>
             </section>
-            <section className="panel p-5" aria-label="Score">
+            <section className="panel p-5" aria-label="점수">
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="label">SCORE</div>
+                  <div className="label">점수</div>
                   <AnimatedNumber value={stats.score.total} format={(v) => Math.round(v).toLocaleString('ko-KR')} className="text-4xl font-extrabold" flash={false} duration={1000} />
                 </div>
                 <div className="grid h-16 w-16 place-items-center rounded-xl border-2 border-[var(--color-ink)] font-mono text-3xl font-extrabold">{stats.score.rank}</div>
               </div>
               <dl className="mt-3 space-y-1 font-mono text-[11px]">
-                <ScoreRow label="RETURN" value={stats.score.returnPts} />
-                <ScoreRow label="RISK CONTROL" value={stats.score.riskControl} />
-                <ScoreRow label="CONSISTENCY" value={stats.score.consistency} />
-                <ScoreRow label="TRADING EFFICIENCY" value={stats.score.efficiency} />
+                <ScoreRow label="수익률" value={stats.score.returnPts} />
+                <ScoreRow label="리스크 관리" value={stats.score.riskControl} />
+                <ScoreRow label="꾸준함" value={stats.score.consistency} />
+                <ScoreRow label="거래 효율" value={stats.score.efficiency} />
                 <div className="flex justify-between text-[var(--color-dim)]">
-                  <dt>DIFFICULTY ({game.difficulty})</dt>
+                  <dt>난이도 보정 ({DIFFICULTY_LABEL[game.difficulty]})</dt>
                   <dd>×{stats.score.multiplier.toFixed(1)}</dd>
                 </div>
               </dl>
@@ -186,13 +187,13 @@ export function ResultScreen() {
         )}
 
         {stage >= 8 && runAchievements.length > 0 && (
-          <section className="panel animate-rise-in p-4" aria-label="Achievements this run">
-            <div className="label mb-2">ACHIEVEMENTS THIS RUN</div>
+          <section className="panel animate-rise-in p-4" aria-label="이번 게임 업적">
+            <div className="label mb-2">이번 게임에서 달성한 업적</div>
             <ul className="flex flex-wrap gap-2">
               {runAchievements.map((a) => (
                 <li key={a.id} className="rounded-md border border-[var(--color-amber)]/50 bg-[var(--color-amber-soft)] px-2.5 py-1.5 font-mono text-[11px] font-bold text-[var(--color-amber)]" title={a.description}>
                   {a.icon} {a.title}
-                  {newIds.has(a.id) && <span className="ml-1.5 rounded bg-[var(--color-amber)] px-1 text-[9px] text-[#1b1203]">NEW</span>}
+                  {newIds.has(a.id) && <span className="ml-1.5 rounded bg-[var(--color-amber)] px-1 text-[9px] text-[#1b1203]">신규</span>}
                 </li>
               ))}
             </ul>
@@ -201,21 +202,21 @@ export function ResultScreen() {
 
         <div className="sticky bottom-3 z-10 grid grid-cols-3 gap-2 rounded-xl border border-[var(--color-line)] bg-[var(--color-bg)]/90 p-2 backdrop-blur">
           <Button variant="primary" size="lg" onClick={playAgain}>
-            PLAY AGAIN
+            다시 하기
           </Button>
           <Button variant="amber" size="lg" onClick={() => setShare(true)}>
-            SHARE
+            결과 공유
           </Button>
           <Button variant="outline" size="lg" onClick={() => navigate('/')}>
-            HOME
+            홈
           </Button>
         </div>
         {stage < STAGE_TIMES.length && (
           <button type="button" onClick={revealAll} className="mx-auto font-mono text-[11px] text-[var(--color-dim)] underline">
-            SHOW ALL
+            전체 보기
           </button>
         )}
-        <p className="text-center text-[11px] text-[var(--color-dim)]">SEED {game.seed} · 같은 시드로 같은 시장을 다시 플레이할 수 있습니다 (SETUP › ADVANCED).</p>
+        <p className="text-center text-[11px] text-[var(--color-dim)]">시드 {game.seed} · 같은 시드로 같은 시장을 다시 플레이할 수 있습니다 (게임 설정 › 고급).</p>
       </main>
       <ShareDialog open={share} onClose={() => setShare(false)} data={shareData} />
     </div>

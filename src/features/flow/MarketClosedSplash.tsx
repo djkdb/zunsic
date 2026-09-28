@@ -14,9 +14,9 @@ export function MarketClosedSplash() {
   return (
     <Modal open labelledBy="closed-title" variant="overlay" className="w-full">
       <button type="button" data-autofocus onClick={showSummary} className="flex min-h-dvh w-full flex-col items-center justify-center gap-3" aria-label="건너뛰기">
-        <div className="label animate-rise-in">DAY {String(day).padStart(2, '0')}</div>
-        <div id="closed-title" className="animate-stamp rounded-lg border-2 border-[var(--color-ink)] px-6 py-3 font-mono text-4xl font-extrabold tracking-[0.15em] sm:text-6xl">
-          MARKET CLOSED
+        <div className="label animate-rise-in">{day}일차 · MARKET CLOSED</div>
+        <div id="closed-title" className="animate-stamp rounded-lg border-2 border-[var(--color-ink)] px-6 py-3 font-mono text-4xl font-extrabold tracking-[0.06em] sm:text-6xl">
+          장 마감
         </div>
       </button>
     </Modal>

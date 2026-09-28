@@ -34,7 +34,7 @@ export const Watchlist = memo(function Watchlist({ onSelect, compact }: Watchlis
   );
 
   return (
-    <ul className="flex flex-col" aria-label="Watchlist">
+    <ul className="flex flex-col" aria-label="관심 종목">
       {STOCKS.map((s) => {
         const price = prices[s.id] ?? s.initialPrice;
         const change = price / (prev[s.id] ?? price) - 1;
@@ -56,10 +56,10 @@ export const Watchlist = memo(function Watchlist({ onSelect, compact }: Watchlis
                   <span className="font-mono text-[13px] font-bold tracking-wide text-[var(--color-ink)]">{s.ticker}</span>
                   {held > 0 && (
                     <span className="rounded bg-[var(--color-info-soft)] px-1 font-mono text-[9px] font-bold text-[var(--color-info)]" title={`${held}주 보유`}>
-                      ●{held}
+                      ●{held}주
                     </span>
                   )}
-                  {highlighted.has(s.id) && <span className="font-mono text-[9px] font-bold text-[var(--color-amber)]">NEWS</span>}
+                  {highlighted.has(s.id) && <span className="font-mono text-[9px] font-bold text-[var(--color-amber)]">뉴스</span>}
                 </div>
                 <div className="truncate text-[11px] text-[var(--color-dim)]">{compact ? s.sector : s.name}</div>
               </div>

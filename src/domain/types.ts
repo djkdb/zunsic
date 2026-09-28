@@ -67,7 +67,7 @@ export interface EventTemplate {
   id: string;
   scope: EventScope;
   category: EventCategory;
-  /** Headline (English, terminal style). Supports {name} and {ticker} placeholders. */
+  /** Headline (Korean). Supports {name} and {ticker} placeholders. */
   title: string;
   /** One-line summary (Korean). Supports placeholders. */
   summary: string;

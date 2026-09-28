@@ -28,8 +28,8 @@ export function TopBar() {
 
         <DayProgress day={game.day} total={game.totalDays} />
 
-        <div className="hidden items-center gap-2 md:flex" aria-label="Market index">
-          <span className="label">INDEX</span>
+        <div className="hidden items-center gap-2 md:flex" aria-label="시장 지수">
+          <span className="label">지수</span>
           <AnimatedNumber value={index.value} format={(v) => v.toFixed(2)} className="text-sm font-semibold" duration={600} />
           <PriceChange value={index.change} className="text-xs" />
           <MarketStateBadge state={shownState} />
@@ -37,7 +37,7 @@ export function TopBar() {
 
         <div className="ml-auto flex items-center gap-3">
           <div className="text-right leading-tight lg:hidden">
-            <div className="label !text-[9px]">TOTAL</div>
+            <div className="label !text-[9px]">총자산</div>
             <AnimatedNumber value={valuation.totalValue} format={formatKRW} className="text-[13px] font-semibold" />
           </div>
           <Button
@@ -48,7 +48,7 @@ export function TopBar() {
             disabled={!trading}
             aria-label={lastDay ? '마지막 날 장 마감 및 최종 정산' : '장 마감 후 다음 날로 진행'}
           >
-            {lastDay ? 'FINISH ■' : 'NEXT DAY ▸'}
+            {lastDay ? '최종 정산 ■' : '다음 날 ▸'}
           </Button>
           <Link
             to="/settings"
@@ -65,10 +65,10 @@ export function TopBar() {
 
 function DayProgress({ day, total }: { day: number; total: number }) {
   return (
-    <div className="flex min-w-0 items-center gap-2" aria-label={`Day ${day} of ${total}`} data-testid="day-indicator" data-day={day}>
+    <div className="flex min-w-0 items-center gap-2" aria-label={`${total}일 중 ${day}일차`} data-testid="day-indicator" data-day={day}>
       <div className="num text-sm font-bold whitespace-nowrap">
-        DAY <span className="text-[var(--color-ink)]">{String(day).padStart(2, '0')}</span>
-        <span className="text-[var(--color-dim)]"> / {total}</span>
+        <span className="text-[var(--color-ink)]">{day}</span>일차
+        <span className="text-[var(--color-dim)]"> / {total}일</span>
       </div>
       <div className="hidden h-1.5 w-24 overflow-hidden rounded-full bg-[var(--color-panel-3)] sm:block xl:w-40" role="progressbar" aria-valuemin={1} aria-valuemax={total} aria-valuenow={day}>
         <div className="h-full rounded-full bg-[var(--color-ink)] transition-[width] duration-700" style={{ width: `${(day / total) * 100}%` }} />

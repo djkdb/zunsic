@@ -26,25 +26,25 @@ export function DayStartSplash() {
         {first ? (
           <>
             <div className="animate-rise-in font-mono text-sm font-bold tracking-[0.3em] text-[var(--color-muted)]">{GAME_TITLE}</div>
-            <div className="label animate-rise-in [animation-delay:200ms]">STARTING CAPITAL</div>
+            <div className="label animate-rise-in [animation-delay:200ms]">시작 자금</div>
             <FirstCapital value={game.startingCash} />
-            <div id="day-start-title" className="animate-rise-in font-mono text-lg font-bold tracking-[0.25em] text-[var(--color-up)] [animation-delay:1400ms]">
-              DAY 01 · MARKET OPEN
+            <div id="day-start-title" className="animate-rise-in font-mono text-lg font-bold tracking-[0.08em] text-[var(--color-up)] [animation-delay:1400ms]">
+              1일차 · 장 시작
             </div>
           </>
         ) : (
           <>
-            <div className="label animate-rise-in">MARKET OPEN</div>
+            <div className="label animate-rise-in">장 시작 · MARKET OPEN</div>
             <div id="day-start-title" className="num animate-rise-in text-7xl font-extrabold tracking-tighter sm:text-8xl [animation-delay:120ms]">
-              DAY {String(day).padStart(2, '0')}
+              {day}일차
             </div>
             <div className="h-1 w-48 overflow-hidden rounded-full bg-[var(--color-panel-3)]">
               <div className="h-full bg-[var(--color-ink)]" style={{ width: `${(day / game.totalDays) * 100}%` }} />
             </div>
-            <div className="font-mono text-xs tracking-[0.2em] text-[var(--color-dim)]">{game.totalDays - day} DAYS LEFT</div>
+            <div className="font-mono text-xs tracking-[0.06em] text-[var(--color-dim)]">남은 기간 {game.totalDays - day}일</div>
           </>
         )}
-        <span className="mt-6 font-mono text-[10px] tracking-widest text-[var(--color-dim)]">TAP TO SKIP</span>
+        <span className="mt-6 font-mono text-[10px] tracking-widest text-[var(--color-dim)]">탭하여 건너뛰기</span>
       </button>
     </Modal>
   );

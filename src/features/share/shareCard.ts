@@ -29,7 +29,7 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
   } catch {
     /* ignore */
   }
-  const mono = '"JetBrains Mono", ui-monospace, monospace';
+  const mono = '"JetBrains Mono", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", ui-monospace, sans-serif';
   const up = data.returnPct >= 0;
   const accent = up ? '#34c77b' : '#ef5a5a';
 
@@ -67,12 +67,12 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
   ctx.fillText(GAME_SUBTITLE, pad, 200);
 
   // Final value
-  label(ctx, 'FINAL VALUE', pad, 330, mono);
+  label(ctx, '최종 자산', pad, 330, mono);
   ctx.fillStyle = '#e8eaed';
   ctx.font = `800 108px ${mono}`;
   ctx.fillText(formatKRW(data.finalValue), pad, 440);
 
-  label(ctx, 'RETURN', pad, 530, mono);
+  label(ctx, '수익률', pad, 530, mono);
   ctx.fillStyle = accent;
   ctx.font = `800 132px ${mono}`;
   ctx.fillText(`${up ? '▲' : '▼'} ${formatPct(data.returnPct)}`, pad, 660);
@@ -107,10 +107,10 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
 
   // Stats grid
   const stats: [string, string, string?][] = [
-    ['TRADES', String(data.trades)],
-    ['BEST TRADE', data.bestTrade ? formatKRW(data.bestTrade.pnl, { sign: true }) : '—', data.bestTrade?.ticker],
-    ['MAX DRAWDOWN', `-${(data.maxDrawdown * 100).toFixed(1)}%`],
-    ['SCORE', `${data.score.toLocaleString('ko-KR')}`, `RANK ${data.rank}`],
+    ['거래 횟수', `${data.trades}회`],
+    ['최고의 거래', data.bestTrade ? formatKRW(data.bestTrade.pnl, { sign: true }) : '—', data.bestTrade?.ticker],
+    ['최대 낙폭', `-${(data.maxDrawdown * 100).toFixed(1)}%`],
+    ['점수', `${data.score.toLocaleString('ko-KR')}`, `${data.rank}등급`],
   ];
   const gy = 950;
   const cw = (W - pad * 2) / 2;
@@ -131,10 +131,10 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
   // Footer
   ctx.fillStyle = '#f5b83d';
   ctx.font = `800 30px ${mono}`;
-  ctx.fillText(`STYLE · ${data.style}`, pad, H - 96);
+  ctx.fillText(`투자 스타일 · ${data.style}`, pad, H - 96);
   ctx.fillStyle = '#626c7d';
   ctx.font = `500 22px ${mono}`;
-  ctx.fillText(`${data.difficulty} · 100% VIRTUAL MONEY · ${GAME_TITLE}`, pad, H - 56);
+  ctx.fillText(`난이도 ${data.difficulty} · 100% 가상 머니 게임 · ${GAME_TITLE}`, pad, H - 56);
 
   return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('toBlob failed'))), 'image/png'));
 }
@@ -142,16 +142,16 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
 function label(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, mono: string) {
   ctx.fillStyle = '#626c7d';
   ctx.font = `600 26px ${mono}`;
-  ctx.fillText(text.split('').join(String.fromCharCode(8202)), x, y);
+  ctx.fillText(text, x, y);
 }
 
 export function shareText(data: ShareCardData): string {
   return [
-    `${GAME_TITLE} — ${GAME_SUBTITLE}`,
-    `FINAL VALUE ${formatKRW(data.finalValue)}`,
-    `RETURN ${formatPct(data.returnPct)}`,
-    `TRADES ${data.trades}${data.bestTrade ? ` · BEST TRADE ${formatKRW(data.bestTrade.pnl, { sign: true })}` : ''}`,
-    `SCORE ${data.score.toLocaleString('ko-KR')} (${data.rank}) · ${data.style}`,
-    '(100% virtual money game)',
+    `${GAME_TITLE} — 30일 가상 주식 투자 게임`,
+    `최종 자산 ${formatKRW(data.finalValue)}`,
+    `수익률 ${formatPct(data.returnPct)}`,
+    `거래 ${data.trades}회${data.bestTrade ? ` · 최고의 거래 ${formatKRW(data.bestTrade.pnl, { sign: true })}` : ''}`,
+    `점수 ${data.score.toLocaleString('ko-KR')} (${data.rank}등급) · ${data.style}`,
+    '(100% 가상 머니 게임)',
   ].join('\n');
 }

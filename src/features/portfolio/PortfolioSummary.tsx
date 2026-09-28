@@ -13,11 +13,11 @@ export function PortfolioSummary({ hero }: { hero?: boolean }) {
   const signed = (x: number) => formatKRW(x, { sign: true });
 
   return (
-    <section className="panel overflow-hidden" aria-label="Portfolio summary">
+    <section className="panel overflow-hidden" aria-label="포트폴리오 요약">
       <div className="border-b border-[var(--color-line)] px-4 pt-3 pb-3">
         <div className="flex items-center justify-between">
-          <span className="label">TOTAL ASSETS</span>
-          <RiskBadge level={v.risk.level} prefix={v.risk.level === 'NONE' ? '' : 'RISK '} />
+          <span className="label">총자산</span>
+          <RiskBadge level={v.risk.level} prefix={v.risk.level === 'NONE' ? '' : '위험 '} />
         </div>
         <AnimatedNumber
           value={v.totalValue}
@@ -30,30 +30,30 @@ export function PortfolioSummary({ hero }: { hero?: boolean }) {
           <span className={`num text-sm font-semibold ${trendClass(v.returnPct)}`} aria-label={`총 수익률 ${formatPct(v.returnPct)}`}>
             {directionSymbol(v.returnPct)} <AnimatedNumber value={v.returnPct} format={(x) => formatPct(x)} flash={false} />
           </span>
-          <span className="label !text-[10px]">RETURN</span>
+          <span className="label !text-[10px]">총 수익률</span>
           <span className={`num text-xs ${trendClass(v.dailyPnL)}`}>
-            DAILY <AnimatedNumber value={v.dailyPnL} format={signed} flash={false} /> ({formatPct(v.dailyPct)})
+            오늘 <AnimatedNumber value={v.dailyPnL} format={signed} flash={false} /> ({formatPct(v.dailyPct)})
           </span>
         </div>
       </div>
 
       <dl className="grid grid-cols-2 gap-px bg-[var(--color-line)]">
-        <Cell label="CASH" value={<AnimatedNumber value={v.cash} format={formatKRW} testId="cash-value" />} sub={v.totalValue > 0 ? `${((v.cash / v.totalValue) * 100).toFixed(0)}%` : undefined} />
-        <Cell label="INVESTED" value={<AnimatedNumber value={v.invested} format={formatKRW} />} sub={v.totalValue > 0 ? `${((v.invested / v.totalValue) * 100).toFixed(0)}%` : undefined} />
+        <Cell label="현금" value={<AnimatedNumber value={v.cash} format={formatKRW} testId="cash-value" />} sub={v.totalValue > 0 ? `${((v.cash / v.totalValue) * 100).toFixed(0)}%` : undefined} />
+        <Cell label="투자금 (평가)" value={<AnimatedNumber value={v.invested} format={formatKRW} />} sub={v.totalValue > 0 ? `${((v.invested / v.totalValue) * 100).toFixed(0)}%` : undefined} />
       </dl>
 
       <dl className="grid grid-cols-3 gap-px border-t border-[var(--color-line)] bg-[var(--color-line)]">
-        <Cell small label="REALIZED P&L" value={<Signed value={v.realizedPnL} testId="realized-value" />} />
-        <Cell small label="UNREALIZED" value={<Signed value={v.unrealizedPnL} testId="unrealized-value" />} />
-        <Cell small label="TOTAL P&L" value={<Signed value={v.totalPnL} />} />
+        <Cell small label="실현손익" value={<Signed value={v.realizedPnL} testId="realized-value" />} />
+        <Cell small label="미실현손익" value={<Signed value={v.unrealizedPnL} testId="unrealized-value" />} />
+        <Cell small label="총 손익" value={<Signed value={v.totalPnL} />} />
       </dl>
 
       {v.concentration && (
         <div role="status" className="flex items-start gap-2 border-t border-[var(--color-amber)]/30 bg-[var(--color-amber-soft)] px-4 py-2.5 text-[12px] text-[var(--color-amber)]">
           <span aria-hidden="true">⚠</span>
           <span>
-            <b className="font-mono tracking-wider">HIGH CONCENTRATION</b> — {(v.concentration.weight * 100).toFixed(0)}% of your portfolio is invested in{' '}
-            {getStock(v.concentration.stockId)?.ticker}.
+            <b className="font-mono tracking-wider">집중 투자 경고</b> — 포트폴리오의 {(v.concentration.weight * 100).toFixed(0)}%가{' '}
+            {getStock(v.concentration.stockId)?.ticker}에 투자되어 있습니다.
           </span>
         </div>
       )}
@@ -86,12 +86,12 @@ function RiskMeter({ score, diversification }: { score: number; diversification:
   return (
     <div className="border-t border-[var(--color-line)] px-4 py-2.5">
       <div className="flex items-center justify-between">
-        <span className="label !text-[10px]">PORTFOLIO RISK</span>
+        <span className="label !text-[10px]">포트폴리오 위험도</span>
         <span className="num text-[10px] text-[var(--color-dim)]">
-          {score}/100 · DIVERSIFICATION {(diversification * 100).toFixed(0)}%
+          {score}/100 · 분산도 {(diversification * 100).toFixed(0)}%
         </span>
       </div>
-      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[var(--color-panel-3)]" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={score} aria-label="Portfolio risk">
+      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[var(--color-panel-3)]" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={score} aria-label="포트폴리오 위험도">
         <div
           className="h-full rounded-full transition-[width] duration-700"
           style={{

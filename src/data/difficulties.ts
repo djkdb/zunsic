@@ -3,7 +3,7 @@ import type { DifficultyConfig, DifficultyId } from '@/domain/types';
 export const DIFFICULTIES: Record<DifficultyId, DifficultyConfig> = {
   CASUAL: {
     id: 'CASUAL',
-    label: 'CASUAL',
+    label: '쉬움',
     description: '잔잔한 시장, 더 많은 힌트, 여유 자금. 처음 플레이한다면 추천.',
     startingCash: 1_500_000,
     volatilityMultiplier: 0.8,
@@ -14,7 +14,7 @@ export const DIFFICULTIES: Record<DifficultyId, DifficultyConfig> = {
   },
   NORMAL: {
     id: 'NORMAL',
-    label: 'NORMAL',
+    label: '보통',
     description: '₩1,000,000으로 시작하는 표준 시장. 기회와 위험이 균형을 이룬다.',
     startingCash: 1_000_000,
     volatilityMultiplier: 1,
@@ -25,7 +25,7 @@ export const DIFFICULTIES: Record<DifficultyId, DifficultyConfig> = {
   },
   HARD: {
     id: 'HARD',
-    label: 'HARD',
+    label: '어려움',
     description: '거친 변동성, 강한 충격, 드문 힌트. 살아남는 것 자체가 실력.',
     startingCash: 1_000_000,
     volatilityMultiplier: 1.3,

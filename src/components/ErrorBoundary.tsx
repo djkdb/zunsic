@@ -35,15 +35,15 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
     return (
       <div className="flex min-h-dvh items-center justify-center p-6">
         <div className="panel max-w-md p-6 text-center">
-          <div className="font-mono text-lg font-bold text-[var(--color-down)]">SYSTEM HALT</div>
+          <div className="font-mono text-lg font-bold text-[var(--color-down)]">시스템 오류</div>
           <p className="mt-2 text-sm text-[var(--color-muted)]">예상치 못한 오류가 발생했습니다. 다시 불러오거나, 계속 문제가 있으면 현재 게임만 초기화하세요.</p>
           <pre className="mt-3 max-h-24 overflow-auto rounded bg-[var(--color-panel-2)] p-2 text-left text-[10px] text-[var(--color-dim)]">{this.state.error.message}</pre>
           <div className="mt-4 flex justify-center gap-2">
             <button type="button" onClick={this.reload} className="h-10 rounded-lg bg-[var(--color-ink)] px-4 font-mono text-xs font-bold text-[var(--color-bg)]">
-              RELOAD
+              다시 불러오기
             </button>
             <button type="button" onClick={this.hardReset} className="h-10 rounded-lg border border-[var(--color-down)] px-4 font-mono text-xs font-bold text-[var(--color-down)]">
-              RESET CURRENT GAME
+              현재 게임 초기화
             </button>
           </div>
         </div>

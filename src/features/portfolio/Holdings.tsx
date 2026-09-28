@@ -17,14 +17,14 @@ export function Holdings({ onSelect }: { onSelect?: (stockId: string) => void })
         <caption className="sr-only">보유 종목</caption>
         <thead>
           <tr className="label border-b border-[var(--color-line)] [&>th]:px-4 [&>th]:py-2 [&>th]:font-normal">
-            <th>STOCK</th>
-            <th className="text-right">SHARES</th>
-            <th className="text-right">AVG PRICE</th>
-            <th className="text-right">CURRENT</th>
-            <th className="text-right">VALUE</th>
-            <th className="text-right">P&L</th>
-            <th className="text-right">RETURN</th>
-            <th className="text-right">WEIGHT</th>
+            <th>종목</th>
+            <th className="text-right">수량</th>
+            <th className="text-right">평균단가</th>
+            <th className="text-right">현재가</th>
+            <th className="text-right">평가금액</th>
+            <th className="text-right">평가손익</th>
+            <th className="text-right">수익률</th>
+            <th className="text-right">비중</th>
           </tr>
         </thead>
         <tbody className="num text-[13px]">
@@ -39,7 +39,7 @@ export function Holdings({ onSelect }: { onSelect?: (stockId: string) => void })
                   {getStock(p.stockId)?.ticker}
                 </button>
               </td>
-              <td className="text-right">{p.shares.toLocaleString('ko-KR')}</td>
+              <td className="text-right">{p.shares.toLocaleString('ko-KR')}주</td>
               <td className="text-right">{formatKRW(p.avgPrice)}</td>
               <td className="text-right">
                 {formatKRW(p.price)} <PriceChange value={p.dayChange} className="text-[10px]" hideSymbol />
@@ -64,13 +64,13 @@ export function Holdings({ onSelect }: { onSelect?: (stockId: string) => void })
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="font-mono text-sm font-bold">{s?.ticker}</span>
-                    <span className="ml-2 text-[11px] text-[var(--color-dim)]">{p.shares.toLocaleString('ko-KR')} shares</span>
+                    <span className="ml-2 text-[11px] text-[var(--color-dim)]">{p.shares.toLocaleString('ko-KR')}주</span>
                   </div>
                   <span className="num text-sm font-semibold">{formatKRW(p.value)}</span>
                 </div>
                 <div className="mt-1 flex items-center justify-between text-[11px]">
                   <span className="num text-[var(--color-dim)]">
-                    AVG {formatKRW(p.avgPrice)} → {formatKRW(p.price)}
+                    평균 {formatKRW(p.avgPrice)} → {formatKRW(p.price)}
                   </span>
                   <span className={`num ${trendClass(p.pnl)}`}>
                     {formatKRW(p.pnl, { sign: true })} ({formatPct(p.pnlPct)})

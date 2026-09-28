@@ -40,6 +40,7 @@ export function GameScreen() {
 // ───────────────────────── Desktop: trading terminal ─────────────────────────
 
 type BottomTab = 'NEWS' | 'HOLDINGS' | 'HISTORY';
+const BOTTOM_TAB_LABEL: Record<BottomTab, string> = { HOLDINGS: '보유 종목', NEWS: '뉴스', HISTORY: '거래 내역' };
 
 function DesktopTerminal() {
   const selected = useGameStore((s) => s.selectedStockId);
@@ -49,10 +50,10 @@ function DesktopTerminal() {
   return (
     <main className="grid flex-1 grid-cols-[240px_minmax(0,1fr)_320px] grid-rows-[minmax(0,1fr)] gap-3 p-3 xl:grid-cols-[280px_minmax(0,1fr)_360px] 2xl:gap-4 2xl:p-4" style={{ height: 'calc(100dvh - 3.5rem - 30px)' }}>
       {/* Left: index + watchlist */}
-      <aside className="flex min-h-0 flex-col gap-3" aria-label="Market">
+      <aside className="flex min-h-0 flex-col gap-3" aria-label="시장">
         <MarketIndexCard chartHeight={110} />
         <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div className="label border-b border-[var(--color-line)] px-3 py-2">WATCHLIST</div>
+          <div className="label border-b border-[var(--color-line)] px-3 py-2">관심 종목</div>
           <div className="min-h-0 flex-1 overflow-y-auto scrollbar-thin">
             <Watchlist onSelect={selectStock} />
           </div>
@@ -60,7 +61,7 @@ function DesktopTerminal() {
       </aside>
 
       {/* Center: chart + bottom tabs */}
-      <section className="flex min-h-0 flex-col gap-3 overflow-y-auto pr-1 scrollbar-thin" aria-label="Stock detail">
+      <section className="flex min-h-0 flex-col gap-3 overflow-y-auto pr-1 scrollbar-thin" aria-label="종목 상세">
         <StockDetail stockId={selected} chartHeight={320} />
         <div className="panel min-h-[260px] overflow-hidden">
           <div role="tablist" aria-label="하단 패널" className="flex border-b border-[var(--color-line)]">
@@ -72,7 +73,7 @@ function DesktopTerminal() {
                 onClick={() => setTab(t)}
                 className={`h-10 px-4 font-mono text-xs font-bold tracking-wider ${tab === t ? 'border-b-2 border-[var(--color-ink)] text-[var(--color-ink)]' : 'text-[var(--color-dim)] hover:text-[var(--color-muted)]'}`}
               >
-                {t}
+                {BOTTOM_TAB_LABEL[t]}
               </button>
             ))}
           </div>
@@ -85,7 +86,7 @@ function DesktopTerminal() {
       </section>
 
       {/* Right: portfolio + order + breaking */}
-      <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto pr-1 scrollbar-thin" aria-label="Portfolio and order">
+      <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto pr-1 scrollbar-thin" aria-label="포트폴리오 및 주문">
         <PortfolioSummary />
         <OrderPanel stockId={selected} showStockPicker key={selected} />
         <BreakingCard />
@@ -105,8 +106,8 @@ function MobileGame() {
           <Route path="market" element={<MobileMarket />} />
           <Route path="stock/:ticker" element={<MobileStock />} />
           <Route path="portfolio" element={<MobilePortfolio />} />
-          <Route path="news" element={<Section title="NEWS"><NewsFeed /></Section>} />
-          <Route path="history" element={<Section title="TRANSACTION HISTORY"><History /></Section>} />
+          <Route path="news" element={<Section title="뉴스"><NewsFeed /></Section>} />
+          <Route path="history" element={<Section title="거래 내역"><History /></Section>} />
           <Route path="*" element={<Navigate to="/play" replace />} />
         </Routes>
       </main>
@@ -132,10 +133,10 @@ function MobileDashboard() {
       <PortfolioSummary hero />
       <BreakingCard />
       <MarketIndexCard chartHeight={110} />
-      <Section title="WATCHLIST">
+      <Section title="관심 종목">
         <Watchlist onSelect={open} />
       </Section>
-      <Section title="HOLDINGS">
+      <Section title="보유 종목">
         <Holdings onSelect={open} />
       </Section>
     </div>
@@ -147,7 +148,7 @@ function MobileMarket() {
   return (
     <div className="flex flex-col gap-3">
       <MarketIndexCard chartHeight={140} />
-      <Section title="ALL STOCKS">
+      <Section title="전체 종목">
         <Watchlist onSelect={open} compact />
       </Section>
     </div>
@@ -159,7 +160,7 @@ function MobilePortfolio() {
   return (
     <div className="flex flex-col gap-3">
       <PortfolioSummary hero />
-      <Section title="HOLDINGS">
+      <Section title="보유 종목">
         <Holdings onSelect={open} />
       </Section>
     </div>
@@ -174,7 +175,7 @@ function MobileStock() {
   if (!stock) {
     return (
       <div className="panel p-6 text-center">
-        <p className="font-mono text-sm text-[var(--color-down)]">ERROR · UNKNOWN TICKER “{ticker}”</p>
+        <p className="font-mono text-sm text-[var(--color-down)]">오류 · 존재하지 않는 종목 “{ticker}”</p>
         <NavLink to="/play/market" className="mt-3 inline-block text-sm underline">
           종목 목록으로
         </NavLink>
@@ -189,14 +190,14 @@ function MobileStock() {
       <div className="fixed inset-x-0 bottom-[60px] z-20 border-t border-[var(--color-line)] bg-[var(--color-bg)]/95 px-3 py-2.5 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center gap-2">
           <div className="min-w-0 flex-1 font-mono text-[11px] text-[var(--color-dim)]">
-            <div>CASH {formatKRW(game?.cash ?? 0)}</div>
-            <div>HOLD {held.toLocaleString('ko-KR')} sh</div>
+            <div>현금 {formatKRW(game?.cash ?? 0)}</div>
+            <div>보유 {held.toLocaleString('ko-KR')}주</div>
           </div>
           <Button variant="buy" size="lg" className="h-12 w-28" onClick={() => setSheet('BUY')} disabled={!trading}>
-            ▲ BUY
+            ▲ 매수
           </Button>
           <Button variant="sell" size="lg" className="h-12 w-28" onClick={() => setSheet('SELL')} disabled={!trading || held === 0}>
-            ▼ SELL
+            ▼ 매도
           </Button>
         </div>
       </div>
@@ -204,7 +205,7 @@ function MobileStock() {
         <div className="max-h-[92dvh] overflow-y-auto rounded-t-2xl border border-[var(--color-line-strong)] bg-[var(--color-bg)] p-2 safe-bottom sm:rounded-2xl">
           <div className="flex items-center justify-between px-2 py-1.5">
             <h2 id="order-sheet-title" className="label">
-              ORDER · {stock.ticker}
+              주문 · {stock.ticker}
             </h2>
             <button type="button" onClick={() => setSheet(null)} className="h-9 w-9 text-[var(--color-muted)]" aria-label="주문창 닫기">
               ✕
@@ -227,11 +228,11 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 const NAV = [
-  { to: '/play', label: 'HOME', icon: '⌂', end: true },
-  { to: '/play/market', label: 'MARKET', icon: '▤', end: false },
-  { to: '/play/portfolio', label: 'PORTFOLIO', icon: '◔', end: false },
-  { to: '/play/news', label: 'NEWS', icon: '◉', end: false },
-  { to: '/play/history', label: 'HISTORY', icon: '≡', end: false },
+  { to: '/play', label: '홈', icon: '⌂', end: true },
+  { to: '/play/market', label: '시장', icon: '▤', end: false },
+  { to: '/play/portfolio', label: '포트폴리오', icon: '◔', end: false },
+  { to: '/play/news', label: '뉴스', icon: '◉', end: false },
+  { to: '/play/history', label: '거래내역', icon: '≡', end: false },
 ];
 
 function BottomNav() {

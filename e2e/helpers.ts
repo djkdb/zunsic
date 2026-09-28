@@ -17,10 +17,10 @@ export async function primeSettings(page: Page) {
 
 export async function startGame(page: Page, seed = SEED, path = '/') {
   await page.goto(`${path}#/`);
-  await page.getByRole('button', { name: /NEW GAME/ }).click();
-  await page.getByText('ADVANCED · MARKET SEED').click();
-  await page.getByPlaceholder('RANDOM').fill(String(seed));
-  await page.getByRole('button', { name: /^▸ START/ }).click();
+  await page.getByRole('button', { name: /새 게임/ }).click();
+  await page.getByText('고급 · 시장 시드').click();
+  await page.getByPlaceholder('랜덤').fill(String(seed));
+  await page.getByRole('button', { name: /^▸ 게임 시작/ }).click();
   await settle(page);
 }
 
@@ -44,7 +44,7 @@ export async function settle(page: Page, opts: { onBreaking?: (page: Page) => Pr
         await opts.onBreaking(page);
         opts = {};
       }
-      const cont = page.getByRole('button', { name: /CONTINUE TRADING|^HOLD$/ });
+      const cont = page.getByRole('button', { name: /거래 계속하기|^보유 유지$/ });
       if (await cont.count()) {
         await cont.first().click();
         continue;
@@ -67,7 +67,7 @@ export async function nextDay(page: Page, opts: { onBreaking?: (page: Page) => P
   const report = page.getByRole('dialog').filter({ hasText: 'DAILY REPORT' });
   await expect(report).toBeVisible();
   if (opts.shot) await page.screenshot({ path: opts.shot });
-  await report.getByRole('button', { name: /MARKET OPEN|FINAL SETTLEMENT/ }).click();
+  await report.getByRole('button', { name: /장 시작|최종 정산/ }).click();
   if (day >= 30) return;
   await settle(page, opts);
   await expect.poll(() => currentDay(page)).toBe(day + 1);

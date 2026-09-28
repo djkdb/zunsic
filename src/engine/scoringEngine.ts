@@ -36,12 +36,12 @@ export function computeMaxDrawdown(values: readonly number[]): Drawdown {
 export type TradingStyleId = 'ACTIVE_TRADER' | 'RISK_TAKER' | 'LONG_TERM' | 'DIVERSIFIER' | 'CAUTIOUS' | 'OBSERVER';
 
 export const TRADING_STYLES: Record<TradingStyleId, { label: string; description: string }> = {
-  ACTIVE_TRADER: { label: 'ACTIVE TRADER', description: '시장의 모든 움직임에 반응한다. 잦은 매매로 기회를 노리는 스타일.' },
-  RISK_TAKER: { label: 'RISK TAKER', description: '고위험 종목에 과감하게 베팅한다. 큰 변동을 두려워하지 않는 스타일.' },
-  LONG_TERM: { label: 'LONG-TERM INVESTOR', description: '한번 산 종목은 오래 들고 간다. 단기 소음보다 추세를 믿는 스타일.' },
-  DIVERSIFIER: { label: 'DIVERSIFIER', description: '여러 종목에 나눠 담는다. 한 번의 악재에 무너지지 않는 스타일.' },
-  CAUTIOUS: { label: 'CAUTIOUS', description: '현금 비중을 높게 유지한다. 확신이 있을 때만 움직이는 스타일.' },
-  OBSERVER: { label: 'THE OBSERVER', description: '30일 동안 시장을 지켜보기만 했다. 다음엔 한 번 뛰어들어 보자.' },
+  ACTIVE_TRADER: { label: '액티브 트레이더', description: '시장의 모든 움직임에 반응한다. 잦은 매매로 기회를 노리는 스타일.' },
+  RISK_TAKER: { label: '리스크 테이커', description: '고위험 종목에 과감하게 베팅한다. 큰 변동을 두려워하지 않는 스타일.' },
+  LONG_TERM: { label: '장기 투자자', description: '한번 산 종목은 오래 들고 간다. 단기 소음보다 추세를 믿는 스타일.' },
+  DIVERSIFIER: { label: '분산 투자자', description: '여러 종목에 나눠 담는다. 한 번의 악재에 무너지지 않는 스타일.' },
+  CAUTIOUS: { label: '신중한 투자자', description: '현금 비중을 높게 유지한다. 확신이 있을 때만 움직이는 스타일.' },
+  OBSERVER: { label: '관망자', description: '30일 동안 시장을 지켜보기만 했다. 다음엔 한 번 뛰어들어 보자.' },
 };
 
 export interface StyleResult {

@@ -21,16 +21,17 @@ export function OrderExecutedFlash() {
   return createPortal(
     <div className="pointer-events-none fixed inset-x-0 top-24 z-[60] flex justify-center px-4" role="status" aria-live="assertive">
       <div key={flash.id} className="animate-stamp rounded-xl border-2 bg-[var(--color-bg)]/95 px-6 py-4 text-center shadow-2xl backdrop-blur" style={{ borderColor: color }}>
-        <div className="font-mono text-2xl font-extrabold tracking-[0.18em] sm:text-3xl" style={{ color }}>
-          ORDER EXECUTED
+        <div className="font-mono text-[10px] font-bold tracking-[0.3em] text-[var(--color-dim)]">ORDER EXECUTED</div>
+        <div className="font-mono text-2xl font-extrabold tracking-[0.06em] sm:text-3xl" style={{ color }}>
+          주문 체결
         </div>
         <div className="num mt-1 text-sm text-[var(--color-ink)]">
-          {buy ? '▲ BUY' : '▼ SELL'} {tx.ticker} × {tx.shares.toLocaleString('ko-KR')} @ {formatKRW(tx.price)}
+          {buy ? '▲ 매수' : '▼ 매도'} {tx.ticker} {tx.shares.toLocaleString('ko-KR')}주 × {formatKRW(tx.price)}
         </div>
         <div className="num text-xs text-[var(--color-muted)]">
-          TOTAL {formatKRW(tx.total)}
+          거래금액 {formatKRW(tx.total)}
           {tx.realizedPnL !== undefined && (
-            <span className={tx.realizedPnL >= 0 ? 'text-up' : 'text-down'}> · P&L {formatKRW(tx.realizedPnL, { sign: true })}</span>
+            <span className={tx.realizedPnL >= 0 ? 'text-up' : 'text-down'}> · 실현손익 {formatKRW(tx.realizedPnL, { sign: true })}</span>
           )}
         </div>
       </div>

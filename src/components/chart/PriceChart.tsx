@@ -163,7 +163,7 @@ export const PriceChart = memo(function PriceChart({
       onBlur={() => setCursor(null)}
     >
       {!geom ? (
-        <div className="label flex h-full items-center justify-center">NO CHART DATA</div>
+        <div className="label flex h-full items-center justify-center">차트 데이터 없음</div>
       ) : (
         <svg width={width} height={height} className="block overflow-visible" aria-hidden="true">
           <defs>
@@ -185,7 +185,7 @@ export const PriceChart = memo(function PriceChart({
           {/* x labels */}
           {geom.xLabels.map((i) => (
             <text key={i} x={geom.x(i)} y={height - 6} textAnchor="middle" className="fill-[var(--color-dim)] font-mono text-[10px]">
-              {`D${data[i]?.day ?? ''}`}
+              {`${data[i]?.day ?? ''}일`}
             </text>
           ))}
 
@@ -219,8 +219,8 @@ export const PriceChart = memo(function PriceChart({
 
           {showHighLow && height >= 180 && (
             <>
-              <HiLo x={geom.x(geom.hi)} y={geom.y(data[geom.hi]?.price ?? 0)} label={`H ${valueFormat(data[geom.hi]?.price ?? 0)}`} above width={width} />
-              <HiLo x={geom.x(geom.lo)} y={geom.y(data[geom.lo]?.price ?? 0)} label={`L ${valueFormat(data[geom.lo]?.price ?? 0)}`} width={width} />
+              <HiLo x={geom.x(geom.hi)} y={geom.y(data[geom.hi]?.price ?? 0)} label={`고 ${valueFormat(data[geom.hi]?.price ?? 0)}`} above width={width} />
+              <HiLo x={geom.x(geom.lo)} y={geom.y(data[geom.lo]?.price ?? 0)} label={`저 ${valueFormat(data[geom.lo]?.price ?? 0)}`} width={width} />
             </>
           )}
 
@@ -233,7 +233,7 @@ export const PriceChart = memo(function PriceChart({
               <g key={`${m.index}-${m.type}`} transform={`translate(${cx},${cy + (buy ? 14 : -14)})`}>
                 <path d={buy ? 'M0,-7 L6,4 L-6,4 Z' : 'M0,7 L6,-4 L-6,-4 Z'} fill={buy ? 'var(--color-up)' : 'var(--color-down)'} stroke="var(--color-bg)" strokeWidth="1.5" />
                 <text y={buy ? 16 : -10} textAnchor="middle" className="font-mono text-[9px] font-semibold" fill={buy ? 'var(--color-up)' : 'var(--color-down)'}>
-                  {buy ? 'BUY' : 'SELL'}
+                  {buy ? '매수' : '매도'}
                 </text>
               </g>
             );
@@ -279,7 +279,7 @@ export const PriceChart = memo(function PriceChart({
           }}
         >
           <div className="label !text-[10px]">
-            DAY {cursorPoint.day} · {tickClock(cursorPoint.tick)}
+            {cursorPoint.day}일차 · {tickClock(cursorPoint.tick)}
           </div>
           <div className="num text-sm font-semibold text-[var(--color-ink)]">{valueFormat(cursorPoint.price)}</div>
           <div className={`num text-[11px] ${cursorPoint.price >= first ? 'text-up' : 'text-down'}`}>

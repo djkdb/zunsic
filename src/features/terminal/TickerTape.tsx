@@ -14,7 +14,7 @@ export const TickerTape = memo(function TickerTape() {
     <>
       {latest && (
         <span className="mx-4 inline-flex items-center gap-2">
-          <span className="rounded bg-[var(--color-amber)] px-1.5 font-bold text-[#1b1203]">BREAKING</span>
+          <span className="rounded bg-[var(--color-amber)] px-1.5 font-bold text-[#1b1203]">속보</span>
           <span className="text-[var(--color-ink)]">{latest.title}</span>
         </span>
       )}
