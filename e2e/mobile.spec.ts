@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { currentDay, nextDay, primeSettings, readNumber, startGame } from './helpers';
 
-for (const width of [375, 390, 414, 430]) {
+for (const width of [320, 375, 390, 414, 430]) {
   test(`18: mobile play at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 860 });
     await primeSettings(page);

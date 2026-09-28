@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react';
-import { HashRouter, Navigate, Route, Routes } from 'react-router';
+import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router';
 import { useMotionAttribute } from '@/hooks/useMotion';
 import { startPersistence, useGameStore } from '@/store/gameStore';
 import { HomeScreen } from '@/screens/HomeScreen';
@@ -24,6 +24,7 @@ export function App() {
   return (
     <ErrorBoundary>
       <HashRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<HomeScreen />} />
           <Route path="/setup" element={<SetupScreen />} />
@@ -41,4 +42,13 @@ export function App() {
       </HashRouter>
     </ErrorBoundary>
   );
+}
+
+/** New screen → start at the top (the browser keeps the old scroll offset otherwise). */
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
 }

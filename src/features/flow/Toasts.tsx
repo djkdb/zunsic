@@ -2,8 +2,13 @@ import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useGameStore, type Toast } from '@/store/gameStore';
 
+/** While the story is being told (day start, breaking news, market close) toasts wait. */
+const PRESENTATION = new Set(['DAY_START', 'NEWS_EVENT', 'MARKET_CLOSED', 'GAME_COMPLETE']);
+
 export function Toasts() {
   const toasts = useGameStore((s) => s.toasts);
+  const phase = useGameStore((s) => s.game?.phase);
+  if (phase && PRESENTATION.has(phase)) return null;
   return createPortal(
     <div className="pointer-events-none fixed inset-x-0 top-16 z-[70] flex flex-col items-center gap-2 px-4 lg:top-auto lg:right-4 lg:bottom-4 lg:left-auto lg:items-end" aria-live="polite">
       {toasts.map((t) => (

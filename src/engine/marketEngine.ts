@@ -1,5 +1,5 @@
 import { MARKET_STATES } from '@/data/marketStates';
-import { INDEX_BASE, NEWS_TICK, TICKS_PER_DAY } from '@/domain/constants';
+import { INDEX_BASE, NEWS_TICK, SEVERITY_RANK, TICKS_PER_DAY } from '@/domain/constants';
 import type {
   DifficultyConfig,
   MarketStateId,
@@ -30,6 +30,10 @@ const MEAN_REVERSION = 0.035;
 const HINT_PRICED_IN = 0.85;
 const HINT_PRE_MOVE = 0.15;
 const MAX_DAILY_UP = 0.6;
+/** A stock in the headline realizes at least this share of the news impact, in the news direction. */
+const MIN_HEADLINE_SHARE = 0.45;
+/** Chance a company/sector headline is "sold on the news" (small move against it), by severity rank. */
+const SELL_THE_NEWS = [0.1, 0.04, 0, 0];
 const MAX_DAILY_DOWN = -0.45;
 
 export function nextMarketState(prev: MarketStateId, rng: Rng, difficulty: DifficultyConfig): MarketStateId {
@@ -89,6 +93,7 @@ export function simulateDay(input: SimulateDayInput): SimulateDayResult {
   const stateRng = createRng(mixSeed(seed, STREAM.MARKET_STATE, day));
   const rng = createRng(mixSeed(seed, STREAM.PRICES, day));
   const tickRng = createRng(mixSeed(seed, STREAM.INTRADAY, day));
+  const newsRng = createRng(mixSeed(seed, STREAM.EVENT_MAGNITUDE, day));
 
   // 1) Regime: Markov step, overridden by the most severe event that shifts the market.
   let marketState = nextMarketState(input.prevState, stateRng, difficulty);
@@ -112,14 +117,16 @@ export function simulateDay(input: SimulateDayInput): SimulateDayResult {
 
   for (const stock of stocks) {
     const prev = prevPrices[stock.id] ?? stock.initialPrice;
-    // On a stock's own news day the headline dominates: idiosyncratic noise is damped.
-    const inNews = events.some((e) => e.targets.includes(stock.id) && e.scope !== 'MARKET');
-    const noise = stock.volatility * regime.volMultiplier * difficulty.volatilityMultiplier * rng.fatTail() * (inNews ? 0.55 : 1);
-    const carry = input.momentum[stock.id] ?? 0;
-    const reversion = -MEAN_REVERSION * Math.log(prev / fairValue(stock, day));
+    // On a stock's own news day the headline dominates: noise, carry and reversion are damped.
+    const headlines = events.filter((e) => e.targets.includes(stock.id));
+    const inNews = headlines.length > 0;
+    const noise = stock.volatility * regime.volMultiplier * difficulty.volatilityMultiplier * rng.fatTail() * (inNews ? 0.45 : 1);
+    const carry = (input.momentum[stock.id] ?? 0) * (inNews ? 0.5 : 1);
+    const reversion = -MEAN_REVERSION * Math.log(prev / fairValue(stock, day)) * (inNews ? 0.3 : 1);
 
     // Event impacts
     let eventImpact = 0;
+    let headlineImpact = 0;
     let followThrough = 0;
     for (const ev of events) {
       const isTarget = ev.targets.includes(stock.id);
@@ -131,6 +138,7 @@ export function simulateDay(input: SimulateDayInput): SimulateDayResult {
       const jitter = rng.range(0.85, 1.15);
       const impact = signed * stock.eventSensitivity * asym * priced * jitter;
       eventImpact += impact;
+      if (isTarget) headlineImpact += impact + (ev.scope === 'MARKET' ? stock.beta * ev.marketImpact : 0);
       followThrough += impact * ev.followThrough;
       (eventImpacts[ev.uid] ??= {})[stock.id] = impact;
     }
@@ -149,11 +157,22 @@ export function simulateDay(input: SimulateDayInput): SimulateDayResult {
       rumorFade -= pop * 0.9;
     }
 
-    const r = clamp(
-      stock.baseTrend + stock.beta * marketFactor + noise + eventImpact + carry + reversion,
-      MAX_DAILY_DOWN,
-      MAX_DAILY_UP,
-    );
+    let r = stock.baseTrend + stock.beta * marketFactor + noise + eventImpact + carry + reversion;
+
+    // Headline guarantee: the player should be able to read the news. The stock in the
+    // headline moves in the news direction by a meaningful amount — except for an occasional
+    // "sell the news" reaction on smaller headlines, which stays modest.
+    if (inNews && Math.abs(headlineImpact) > 0.004) {
+      const dir = Math.sign(headlineImpact);
+      const rank = Math.max(...headlines.map((e) => SEVERITY_RANK[e.severity]));
+      const floor = Math.abs(headlineImpact) * MIN_HEADLINE_SHARE;
+      if (newsRng.chance(SELL_THE_NEWS[rank] ?? 0)) {
+        r = -dir * Math.abs(headlineImpact) * newsRng.range(0.15, 0.4);
+      } else if (r * dir < floor) {
+        r = dir * (floor + Math.abs(headlineImpact) * newsRng.range(0, 0.25));
+      }
+    }
+    r = clamp(r, MAX_DAILY_DOWN, MAX_DAILY_UP);
     const price = roundPrice(prev * (1 + r));
     prices[stock.id] = price;
     changes[stock.id] = price / prev - 1;

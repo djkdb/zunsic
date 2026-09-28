@@ -15,6 +15,7 @@ export const EVENT_TEMPLATES: readonly EventTemplate[] = [
   // ───────────────────────── COMPANY · bullish ─────────────────────────
   {
     id: 'product-launch-hit',
+    calendar: '{ticker} 신제품 발표 행사',
     scope: 'COMPANY',
     category: 'PRODUCT',
     title: '{name}, 야심작 신제품 공개… 사전 주문 역대 최대',
@@ -48,6 +49,7 @@ export const EVENT_TEMPLATES: readonly EventTemplate[] = [
   },
   {
     id: 'clinical-success',
+    calendar: '{ticker} 임상 결과 발표',
     scope: 'COMPANY',
     category: 'CLINICAL',
     title: '{name}, 3상 임상 1차 평가지표 모두 충족',
@@ -80,6 +82,7 @@ export const EVENT_TEMPLATES: readonly EventTemplate[] = [
   },
   {
     id: 'earnings-beat',
+    calendar: '{ticker} 분기 실적 발표',
     scope: 'COMPANY',
     category: 'EARNINGS',
     title: '{name}, 어닝 서프라이즈… 연간 가이던스 상향',
@@ -159,6 +162,7 @@ export const EVENT_TEMPLATES: readonly EventTemplate[] = [
   // ───────────────────────── COMPANY · bearish ─────────────────────────
   {
     id: 'product-flop',
+    calendar: '{ticker} 신제품 발표 행사',
     scope: 'COMPANY',
     category: 'PRODUCT',
     title: '{name} 신제품 혹평 속 흥행 참패',
@@ -175,6 +179,7 @@ export const EVENT_TEMPLATES: readonly EventTemplate[] = [
   },
   {
     id: 'clinical-fail',
+    calendar: '{ticker} 임상 결과 발표',
     scope: 'COMPANY',
     category: 'CLINICAL',
     title: '{name} 핵심 신약, 후기 임상 실패',
@@ -227,6 +232,7 @@ export const EVENT_TEMPLATES: readonly EventTemplate[] = [
   },
   {
     id: 'earnings-miss',
+    calendar: '{ticker} 분기 실적 발표',
     scope: 'COMPANY',
     category: 'EARNINGS',
     title: '{name} 어닝 쇼크… 매출 예상치 크게 하회',
@@ -426,6 +432,7 @@ export const EVENT_TEMPLATES: readonly EventTemplate[] = [
   // ───────────────────────── MARKET ─────────────────────────
   {
     id: 'rate-hike',
+    calendar: '중앙은행 금리 결정',
     scope: 'MARKET',
     category: 'MACRO',
     title: '중앙은행, 기습 금리 인상',
@@ -446,6 +453,7 @@ export const EVENT_TEMPLATES: readonly EventTemplate[] = [
   },
   {
     id: 'rate-cut',
+    calendar: '중앙은행 금리 결정',
     scope: 'MARKET',
     category: 'MACRO',
     title: '중앙은행 금리 인하… 시장 환호',

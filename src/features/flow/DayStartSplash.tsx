@@ -52,5 +52,5 @@ export function DayStartSplash() {
 
 function FirstCapital({ value }: { value: number }) {
   const shown = useDelayedValue(0, value, 350);
-  return <AnimatedNumber value={shown} format={formatKRW} duration={1100} flash={false} className="text-5xl font-extrabold tracking-tight sm:text-7xl" />;
+  return <AnimatedNumber value={shown} format={formatKRW} duration={1100} flash={false} className="text-[clamp(2.25rem,12vw,4.5rem)] font-extrabold tracking-tight" />;
 }

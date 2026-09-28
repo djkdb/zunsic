@@ -11,6 +11,7 @@ import { getIndexView, getValuation, isPreReveal } from '@/store/selectors';
 export function TopBar() {
   const game = useGameStore((s) => s.game);
   const closeMarket = useGameStore((s) => s.closeMarket);
+  const setHelpOpen = useGameStore((s) => s.setHelpOpen);
   if (!game) return null;
   const index = getIndexView(game);
   const valuation = getValuation(game);
@@ -43,13 +44,23 @@ export function TopBar() {
           <Button
             variant={lastDay ? 'amber' : 'primary'}
             size="md"
-            className="min-w-[112px] !px-3"
+            className="min-w-[92px] !px-3 sm:min-w-[112px]"
             onClick={closeMarket}
             disabled={!trading}
             aria-label={lastDay ? '마지막 날 장 마감 및 최종 정산' : '장 마감 후 다음 날로 진행'}
+            aria-keyshortcuts="N"
+            title="단축키: N"
           >
             {lastDay ? '최종 정산 ■' : '다음 날 ▸'}
           </Button>
+          <button
+            type="button"
+            onClick={() => setHelpOpen(true)}
+            className="hidden h-10 w-10 place-items-center rounded-lg border border-[var(--color-line-strong)] text-[var(--color-muted)] hover:text-[var(--color-ink)] sm:grid"
+            aria-label="게임 방법"
+          >
+            ?
+          </button>
           <Link
             to="/settings"
             className="hidden h-10 w-10 place-items-center rounded-lg border border-[var(--color-line-strong)] text-[var(--color-muted)] hover:text-[var(--color-ink)] sm:grid"
@@ -68,7 +79,7 @@ function DayProgress({ day, total }: { day: number; total: number }) {
     <div className="flex min-w-0 items-center gap-2" aria-label={`${total}일 중 ${day}일차`} data-testid="day-indicator" data-day={day}>
       <div className="num text-sm font-bold whitespace-nowrap">
         <span className="text-[var(--color-ink)]">{day}</span>일차
-        <span className="text-[var(--color-dim)]"> / {total}일</span>
+        <span className="text-[var(--color-dim)] max-[359px]:hidden"> / {total}일</span>
       </div>
       <div className="hidden h-1.5 w-24 overflow-hidden rounded-full bg-[var(--color-panel-3)] sm:block xl:w-40" role="progressbar" aria-valuemin={1} aria-valuemax={total} aria-valuenow={day}>
         <div className="h-full rounded-full bg-[var(--color-ink)] transition-[width] duration-700" style={{ width: `${(day / total) * 100}%` }} />

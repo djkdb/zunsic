@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Navigate, NavLink, Route, Routes, useNavigate, useParams } from 'react-router';
 import { findStockByTicker, getStock } from '@/data/stocks';
 import type { TradeType } from '@/domain/types';
@@ -19,6 +19,8 @@ import { BreakingCard, NewsFeed } from '@/features/news/NewsFeed';
 import { History } from '@/features/history/History';
 import { FlowController } from '@/features/flow/FlowController';
 import { OrderExecutedFlash } from '@/features/flow/OrderExecutedFlash';
+import { HowToPlay } from '@/features/flow/HowToPlay';
+import { UpcomingCalendar } from '@/features/news/UpcomingCalendar';
 
 export function GameScreen() {
   const hasGame = useGameStore((s) => !!s.game);
@@ -33,6 +35,8 @@ export function GameScreen() {
       {desktop ? <DesktopTerminal /> : <MobileGame />}
       <FlowController />
       <OrderExecutedFlash />
+      <HowToPlay />
+      <NextDayShortcut />
     </div>
   );
 }
@@ -90,6 +94,7 @@ function DesktopTerminal() {
         <PortfolioSummary />
         <OrderPanel stockId={selected} showStockPicker key={selected} />
         <BreakingCard />
+        <UpcomingCalendar />
       </aside>
     </main>
   );
@@ -132,6 +137,7 @@ function MobileDashboard() {
     <div className="flex flex-col gap-3">
       <PortfolioSummary hero />
       <BreakingCard />
+      <UpcomingCalendar />
       <MarketIndexCard chartHeight={110} />
       <Section title="관심 종목">
         <Watchlist onSelect={open} />
@@ -258,4 +264,24 @@ function BottomNav() {
       </ul>
     </nav>
   );
+}
+
+/** "N" closes the trading day (ignored while typing or when a dialog is open). */
+function NextDayShortcut() {
+  const closeMarket = useGameStore((s) => s.closeMarket);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'n' && e.key !== 'N') return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const target = e.target as HTMLElement | null;
+      if (target && (target.isContentEditable || ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName))) return;
+      if (document.querySelector('[role="dialog"]')) return;
+      if (useGameStore.getState().game?.phase !== 'TRADING') return;
+      e.preventDefault();
+      closeMarket();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [closeMarket]);
+  return null;
 }

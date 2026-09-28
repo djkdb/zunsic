@@ -10,7 +10,7 @@ export async function primeSettings(page: Page) {
     localStorage.clear();
     localStorage.setItem(
       'market30:meta:v1',
-      JSON.stringify({ version: 1, achievements: {}, personalBest: {}, settings: { reducedMotion: 'on', fastMode: true, difficulty: 'NORMAL' } }),
+      JSON.stringify({ version: 1, achievements: {}, personalBest: {}, settings: { reducedMotion: 'on', fastMode: true, difficulty: 'NORMAL', seenTutorial: true } }),
     );
   });
 }

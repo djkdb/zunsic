@@ -136,7 +136,8 @@ test('08–10, 12–15: breaking news, crash, full 30 days, result screen, share
   await expect(page.getByText('최대 낙폭 (MDD)')).toBeVisible();
   await expect(page.getByText('나의 투자 스타일')).toBeVisible();
   await expect(page.getByText('총 거래 횟수')).toBeVisible();
-  await expect(page.getByText('★ 신기록')).toBeVisible();
+  await expect(page.getByText('첫 완주 기록 등록')).toBeVisible();
+  await expect(page.getByText('★ 신기록')).toHaveCount(0);
   await page.waitForTimeout(1500);
   await page.screenshot({ path: 'e2e/screenshots/desktop-15-result.png', fullPage: true });
 
@@ -196,4 +197,48 @@ test('61: corrupted save falls back safely', async ({ page }) => {
   await expect(page.getByRole('alert')).toContainText('손상');
   await expect(page.getByRole('button', { name: '이어하기' })).toBeDisabled();
   await expect(page.getByRole('button', { name: /새 게임/ })).toBeEnabled();
+});
+
+test('first-time guide, keyboard flow and upcoming calendar', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem('primed2')) return;
+    sessionStorage.setItem('primed2', '1');
+    localStorage.clear();
+    localStorage.setItem('market30:meta:v1', JSON.stringify({ version: 1, settings: { reducedMotion: 'on', fastMode: true } }));
+  });
+  await page.goto('/#/');
+  await page.getByRole('button', { name: /새 게임/ }).click();
+  await page.getByText('고급 · 시장 시드').click();
+  await page.getByPlaceholder('랜덤').fill('20260928');
+  await page.getByRole('button', { name: /^▸ 게임 시작/ }).click();
+  // Guide appears once for a new player
+  await expect(page.getByRole('heading', { name: /30일 버티기/ })).toBeVisible({ timeout: 10_000 });
+  await page.getByRole('button', { name: /시작하기/ }).click();
+  await expect(page.getByRole('heading', { name: /30일 버티기/ })).toHaveCount(0);
+  await expect(page.getByLabel('다가오는 일정')).toBeVisible();
+
+  // Keyboard-only day loop: N → Enter (report) → Enter (breaking news, if any)
+  for (let d = 1; d <= 3; d++) {
+    await page.keyboard.press('n');
+    await expect(page.getByRole('dialog').filter({ hasText: 'DAILY REPORT' })).toBeVisible();
+    await page.keyboard.press('Enter');
+    await expect
+      .poll(async () => {
+        if (await page.locator('#breaking-title').count()) {
+          const btn = page.getByRole('button', { name: /거래 계속하기|^보유 유지$/ });
+          if (await btn.count()) await page.keyboard.press('Enter');
+        }
+        return page.locator('[role=dialog]').count();
+      }, { timeout: 15_000 })
+      .toBe(0);
+    await expect.poll(() => currentDay(page)).toBe(d + 1);
+  }
+
+  // Guide stays dismissed after reload; "?" reopens it
+  await page.reload();
+  await page.getByRole('button', { name: '이어하기' }).click();
+  await settle(page);
+  await expect(page.getByRole('heading', { name: /30일 버티기/ })).toHaveCount(0);
+  await page.getByRole('button', { name: '게임 방법' }).click();
+  await expect(page.getByRole('heading', { name: /30일 버티기/ })).toBeVisible();
 });

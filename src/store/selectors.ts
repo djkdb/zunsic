@@ -1,6 +1,8 @@
+import { EVENT_TEMPLATE_MAP } from '@/data/events';
 import { STOCKS } from '@/data/stocks';
 import { TICKS_PER_DAY } from '@/domain/constants';
 import type { GameState, NewsItem, PricePoint } from '@/domain/types';
+import { fillTemplate } from '@/lib/format';
 import { visibleNews } from '@/engine/gameEngine';
 import { computeIndex } from '@/engine/marketEngine';
 import { valuePortfolio, type Valuation } from '@/engine/portfolioEngine';
@@ -97,3 +99,38 @@ export function getVisibleNews(game: GameState): NewsItem[] {
 
 /** Hook: current game (throws-free; components render fallbacks when null). */
 export const useGame = () => useGameStore((s) => s.game);
+
+/** Today's unconfirmed rumors / analyst notes (hidden until the market opens). */
+export function getTodayHints(game: GameState): NewsItem[] {
+  if (isPreReveal(game)) return [];
+  return game.news.filter((n) => n.day === game.day && (n.kind === 'RUMOR' || n.kind === 'ANALYST'));
+}
+
+export interface CalendarEntry {
+  key: string;
+  day: number;
+  inDays: number;
+  label: string;
+  stockIds: string[];
+}
+
+/**
+ * Publicly scheduled events in the next few days (earnings, trial readouts, rate decisions).
+ * Only the date and subject are known — never the direction.
+ */
+export function getUpcomingCalendar(game: GameState, horizon = 3): CalendarEntry[] {
+  const out: CalendarEntry[] = [];
+  const seen = new Set<string>();
+  for (const ev of game.schedule) {
+    if (ev.day <= game.day || ev.day > game.day + horizon) continue;
+    const template = EVENT_TEMPLATE_MAP.get(ev.templateId);
+    if (!template?.calendar) continue;
+    const stock = ev.scope === 'COMPANY' ? STOCKS.find((s) => s.id === ev.targets[0]) : undefined;
+    const label = fillTemplate(template.calendar, { ticker: stock?.ticker ?? '', name: stock?.name ?? '' });
+    const key = `${ev.day}-${label}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ key, day: ev.day, inDays: ev.day - game.day, label, stockIds: stock ? [stock.id] : [] });
+  }
+  return out.sort((a, b) => a.day - b.day);
+}

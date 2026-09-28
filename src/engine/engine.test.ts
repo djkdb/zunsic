@@ -17,6 +17,7 @@ import { averageIn, totalValueAt, valuePortfolio } from './portfolioEngine';
 import { computeFinalStats, computeMaxDrawdown, evaluateAchievements } from './scoringEngine';
 import { executeOrder, validateOrder } from './tradingEngine';
 import { validateGameState } from '@/persistence/storage';
+import { getUpcomingCalendar } from '@/store/selectors';
 
 const trading = (s: GameState): GameState => ({ ...s, phase: 'TRADING' });
 const newGame = (seed = 12345) => trading(createNewGame({ stocks: STOCKS, seed }));
@@ -279,5 +280,50 @@ describe('State machine & persistence', () => {
   it('debug cash injection does not count as return', () => {
     const s = debugAddCash(newGame(), 1_000_000);
     expect(valuation(s).returnPct).toBe(0);
+  });
+});
+
+describe('News readability', () => {
+  it('headline stocks move with the news; "sell the news" reactions stay small', () => {
+    let n = 0;
+    let hit = 0;
+    let worstAgainst = 0;
+    for (let seed = 1; seed <= 80; seed++) {
+      let s = newGame(seed);
+      while (s.day < s.totalDays) {
+        s = nextDay(s);
+        for (const ev of s.schedule.filter((e) => e.day === s.day)) {
+          for (const id of ev.targets) {
+            // single-headline days only (overlapping news can legitimately conflict)
+            const overlapping = s.schedule.filter(
+              (e) => e.day === s.day && (e.targets.includes(id) || e.spillTargets.includes(id) || e.marketImpact !== 0),
+            );
+            if (overlapping.length > 1) continue;
+            const change = s.prices[id]! / s.prevPrices[id]! - 1;
+            n++;
+            if (Math.sign(change) === ev.direction) hit++;
+            else worstAgainst = Math.max(worstAgainst, Math.abs(change));
+          }
+        }
+      }
+    }
+    expect(n).toBeGreaterThan(500);
+    expect(hit / n).toBeGreaterThan(0.9);
+    expect(worstAgainst).toBeLessThan(0.06);
+  });
+
+  it('calendar lists scheduled events ahead without revealing direction', () => {
+    const s = newGame(20260928);
+    let found = 0;
+    for (let day = 1; day <= 27; day++) {
+      const entries = getUpcomingCalendar({ ...s, day }, 3);
+      for (const e of entries) {
+        found++;
+        expect(e.inDays).toBeGreaterThanOrEqual(1);
+        expect(e.inDays).toBeLessThanOrEqual(3);
+        expect(e.label).not.toMatch(/서프라이즈|쇼크|성공|실패|인상|인하|흥행|참패/);
+      }
+    }
+    expect(found).toBeGreaterThan(0);
   });
 });

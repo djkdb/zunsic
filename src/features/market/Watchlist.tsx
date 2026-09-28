@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, type ReactNode } from 'react';
 import { STOCKS } from '@/data/stocks';
 import { Sparkline } from '@/components/chart/Sparkline';
 import { RiskBadge } from '@/components/ui/Badges';
@@ -6,7 +6,7 @@ import { PriceChange } from '@/components/ui/PriceChange';
 import { formatKRW } from '@/lib/format';
 import type { GameState } from '@/domain/types';
 import { useGameStore } from '@/store/gameStore';
-import { displayHistory, displayPrices, isPreReveal } from '@/store/selectors';
+import { displayHistory, displayPrices, getTodayHints, getUpcomingCalendar, isPreReveal } from '@/store/selectors';
 
 function dailyCloses(game: GameState, stockId: string, days: number): number[] {
   const series = displayHistory(game, stockId);
@@ -30,8 +30,12 @@ export const Watchlist = memo(function Watchlist({ onSelect, compact }: Watchlis
   if (!game) return null;
   const { prices, prev } = displayPrices(game);
   const highlighted = new Set(
-    isPreReveal(game) ? [] : game.news.filter((n) => n.day === game.day && n.eventUid).flatMap((n) => n.affected),
+    isPreReveal(game)
+      ? []
+      : game.news.filter((n) => n.day === game.day && n.eventUid && n.kind !== 'RUMOR' && n.kind !== 'ANALYST').flatMap((n) => n.affected),
   );
+  const rumored = new Set(getTodayHints(game).flatMap((n) => n.affected));
+  const scheduled = new Map(getUpcomingCalendar(game).flatMap((e) => e.stockIds.map((id) => [id, e] as const)));
 
   return (
     <ul className="flex flex-col" aria-label="관심 종목">
@@ -52,14 +56,16 @@ export const Watchlist = memo(function Watchlist({ onSelect, compact }: Watchlis
               } ${highlighted.has(s.id) ? 'ring-1 ring-[var(--color-amber)]/40 ring-inset' : ''}`}
             >
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1 overflow-hidden whitespace-nowrap">
                   <span className="font-mono text-[13px] font-bold tracking-wide text-[var(--color-ink)]">{s.ticker}</span>
-                  {held > 0 && (
-                    <span className="rounded bg-[var(--color-info-soft)] px-1 font-mono text-[9px] font-bold text-[var(--color-info)]" title={`${held}주 보유`}>
-                      ●{held}주
-                    </span>
+                  {held > 0 && <Tag className="bg-[var(--color-info-soft)] text-[var(--color-info)]" title={`${held}주 보유`}>{held}주</Tag>}
+                  {highlighted.has(s.id) && <Tag className="bg-[var(--color-amber-soft)] text-[var(--color-amber)]" title="오늘 이 종목 관련 뉴스가 나왔습니다">뉴스</Tag>}
+                  {rumored.has(s.id) && <Tag className="border border-dashed border-[var(--color-line-strong)] text-[var(--color-muted)]" title="오늘 확인되지 않은 소문이 돌고 있습니다">소문</Tag>}
+                  {scheduled.has(s.id) && (
+                    <Tag className="border border-[var(--color-amber)]/40 text-[var(--color-amber)]" title={scheduled.get(s.id)?.label}>
+                      {scheduled.get(s.id)?.inDays === 1 ? '내일 발표' : `D-${scheduled.get(s.id)?.inDays}`}
+                    </Tag>
                   )}
-                  {highlighted.has(s.id) && <span className="font-mono text-[9px] font-bold text-[var(--color-amber)]">뉴스</span>}
                 </div>
                 <div className="truncate text-[11px] text-[var(--color-dim)]">{compact ? s.sector : s.name}</div>
               </div>
@@ -76,3 +82,11 @@ export const Watchlist = memo(function Watchlist({ onSelect, compact }: Watchlis
     </ul>
   );
 });
+
+function Tag({ children, className, title }: { children: ReactNode; className: string; title?: string }) {
+  return (
+    <span className={`shrink-0 rounded px-1 font-mono text-[9px] leading-4 font-bold ${className}`} title={title}>
+      {children}
+    </span>
+  );
+}

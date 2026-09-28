@@ -53,7 +53,7 @@ export function HomeScreen() {
           <p className="mt-2 animate-rise-in text-sm text-[var(--color-dim)] [animation-delay:160ms]">30일 동안 ₩1,000,000으로 가상 시장에 투자하고, 최종 수익률로 실력을 증명하세요.</p>
           <div className="mx-auto mt-10 max-w-md animate-rise-in [animation-delay:240ms]">
             <div className="label">시작 자금</div>
-            <div className="num text-5xl font-extrabold sm:text-6xl">{formatKRW(1_000_000)}</div>
+            <div className="num text-[clamp(2.25rem,12vw,3.75rem)] font-extrabold">{formatKRW(1_000_000)}</div>
           </div>
         </header>
 

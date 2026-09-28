@@ -93,6 +93,9 @@
     font-family: var(--font-sans);
     min-height: 100dvh;
     overflow-x: hidden;
+    /* Korean: break between words, not inside them */
+    word-break: keep-all;
+    overflow-wrap: break-word;
   }
   #root {
     min-height: 100dvh;
@@ -121,6 +124,7 @@
 
 /* ───────────── Utilities ───────────── */
 @utility num {
+  white-space: nowrap;
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;

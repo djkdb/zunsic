@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { getStock, STOCKS } from '@/data/stocks';
 import { breakingNewsFor } from '@/engine/gameEngine';
@@ -10,6 +10,7 @@ import { directionSymbol, formatKRW, formatPct, trendClass } from '@/lib/format'
 import { useIsDesktop } from '@/hooks/useMediaQuery';
 import { useTimeScale } from '@/hooks/useMotion';
 import { useGameStore } from '@/store/gameStore';
+import { getTodayHints } from '@/store/selectors';
 import { SEVERITY_LABEL } from '@/lib/labels';
 import { computeIndex } from '@/engine/marketEngine';
 
@@ -27,6 +28,7 @@ export function BreakingNewsOverlay() {
   const desktop = useIsDesktop();
   const [stage, setStage] = useState(0);
   const [confirmSell, setConfirmSell] = useState(false);
+  const actionsRef = useRef<HTMLDivElement>(null);
 
   const data = useMemo(() => {
     if (!game) return null;
@@ -38,7 +40,7 @@ export function BreakingNewsOverlay() {
     const after = totalValueAt(game, game.prices);
     const indexChange = computeIndex(game.prices, STOCKS) / computeIndex(game.prevPrices, STOCKS) - 1;
     const hasPositions = Object.values(game.holdings).some((h) => h.shares > 0);
-    return { main, others: items.slice(1, 3), affected, before, after, indexChange, hasPositions };
+    return { main, others: items.slice(1, 3), affected, before, after, indexChange, hasPositions, hints: getTodayHints(game) };
   }, [game]);
 
   useEffect(() => {
@@ -46,6 +48,12 @@ export function BreakingNewsOverlay() {
     const timers = times.map((t, i) => setTimeout(() => setStage(i + 1), t * scale));
     return () => timers.forEach(clearTimeout);
   }, [scale]);
+
+  // The action buttons only appear at the end of the sequence: move focus there so
+  // Enter / Space continues (the modal's initial focus ran before they existed).
+  useEffect(() => {
+    if (stage >= 7) actionsRef.current?.querySelector<HTMLElement>('[data-autofocus]')?.focus({ preventScroll: true });
+  }, [stage]);
 
   if (!game || !data) return null;
   const { main } = data;
@@ -66,7 +74,7 @@ export function BreakingNewsOverlay() {
   };
 
   return (
-    <Modal open labelledBy="breaking-title" variant="overlay" className="w-full max-w-3xl px-4" onClose={stage >= 6 ? dismissNews : undefined}>
+    <Modal open labelledBy="breaking-title" variant="overlay" className="max-h-dvh w-full max-w-3xl overflow-y-auto px-4 py-4" onClose={stage >= 6 ? dismissNews : undefined}>
       <div className={`relative overflow-hidden rounded-2xl border bg-[var(--color-panel)] ${marketEvent && bearish && stage >= 5 ? 'animate-shake' : ''}`} style={{ borderColor: accent }}>
         {/* 1. ticker flash */}
         <div className="overflow-hidden border-b py-1.5" style={{ borderColor: accent, background: `color-mix(in srgb, ${accent} 16%, transparent)` }}>
@@ -122,7 +130,7 @@ export function BreakingNewsOverlay() {
           {stage >= 6 && data.hasPositions && (
             <div className="mt-5 flex animate-rise-in flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--color-line-strong)] bg-[var(--color-panel-2)] px-4 py-3">
               <span className="label">내 포트폴리오</span>
-              <div className="flex items-center gap-2 font-mono">
+              <div className="flex flex-wrap items-center gap-x-2 font-mono">
                 <span className="num text-sm text-[var(--color-muted)]">{formatKRW(data.before)}</span>
                 <span className="text-[var(--color-dim)]">→</span>
                 <AnimatedNumber value={data.after} format={formatKRW} className={`text-lg font-bold ${trendClass(data.after - data.before)}`} />
@@ -133,9 +141,24 @@ export function BreakingNewsOverlay() {
             </div>
           )}
 
+          {/* 6b. today's unconfirmed rumors — tomorrow's possible headlines */}
+          {stage >= 6 && data.hints.length > 0 && (
+            <div className="mt-3 animate-rise-in rounded-lg border border-dashed border-[var(--color-line-strong)] px-4 py-3">
+              <div className="label mb-1.5">📡 오늘의 시장 소문 · 미확인</div>
+              <ul className="space-y-1">
+                {data.hints.map((h) => (
+                  <li key={h.id} className="text-[13px] leading-snug text-[var(--color-muted)]">
+                    {h.title}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-1.5 text-[11px] text-[var(--color-dim)]">내일 현실이 될 수도, 헛소문으로 끝날 수도 있습니다.</p>
+            </div>
+          )}
+
           {/* 7. decision */}
           {stage >= 7 && (
-            <div className="mt-6 animate-rise-in">
+            <div className="mt-6 animate-rise-in" ref={actionsRef}>
               {decision && data.hasPositions ? (
                 <>
                   <div className="label mb-2 text-center">당신의 선택은?</div>
@@ -178,7 +201,7 @@ function MoveTile({ label, sub, to, revealed, held }: { label: string; sub?: str
         {held && <span className="rounded bg-[var(--color-info-soft)] px-1 font-mono text-[9px] font-bold text-[var(--color-info)]">보유</span>}
       </div>
       {sub && <div className="truncate text-[10px] text-[var(--color-dim)]">{sub}</div>}
-      <div className={`num mt-1 text-2xl font-extrabold ${tone}`}>
+      <div className={`num mt-1 text-xl font-extrabold sm:text-2xl ${tone}`}>
         {revealed && <span aria-hidden="true">{directionSymbol(to)} </span>}
         <AnimatedNumber value={shown} format={(v) => formatPct(v, { digits: 1 })} duration={900} flash={false} />
       </div>

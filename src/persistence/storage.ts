@@ -36,6 +36,10 @@ export interface Settings {
   reducedMotion: 'system' | 'on' | 'off';
   fastMode: boolean;
   difficulty: DifficultyId;
+  /** Skip the daily report modal and go straight to the next day. */
+  skipReport: boolean;
+  /** First-game "how to play" guide has been seen. */
+  seenTutorial: boolean;
 }
 
 export interface MetaData {
@@ -45,7 +49,13 @@ export interface MetaData {
   settings: Settings;
 }
 
-export const DEFAULT_SETTINGS: Settings = { reducedMotion: 'system', fastMode: false, difficulty: 'NORMAL' };
+export const DEFAULT_SETTINGS: Settings = {
+  reducedMotion: 'system',
+  fastMode: false,
+  difficulty: 'NORMAL',
+  skipReport: false,
+  seenTutorial: false,
+};
 
 export const DEFAULT_META: MetaData = {
   version: SAVE_VERSION,
@@ -178,6 +188,8 @@ export function loadMeta(): MetaData {
         fastMode: settings.fastMode === true,
         difficulty:
           settings.difficulty === 'CASUAL' || settings.difficulty === 'HARD' ? settings.difficulty : 'NORMAL',
+        skipReport: settings.skipReport === true,
+        seenTutorial: settings.seenTutorial === true,
       },
     };
   } catch {

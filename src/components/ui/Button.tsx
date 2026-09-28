@@ -15,7 +15,7 @@ const VARIANTS: Record<Variant, string> = {
 const SIZES: Record<Size, string> = {
   sm: 'h-8 px-3 text-xs',
   md: 'h-10 px-4 text-sm',
-  lg: 'h-12 px-6 text-sm',
+  lg: 'h-12 px-3 text-sm sm:px-6',
 };
 
 export function Button({
@@ -28,7 +28,7 @@ export function Button({
   return (
     <button
       type={type}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg font-mono font-semibold tracking-wide uppercase transition-[background,filter,color,transform] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-mono font-semibold tracking-wide uppercase transition-[background,filter,color,transform] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
       {...rest}
     />
   );

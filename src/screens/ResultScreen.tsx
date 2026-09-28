@@ -53,7 +53,8 @@ export function ResultScreen() {
   if (game.phase !== 'RESULT' && game.phase !== 'GAME_COMPLETE') return <Navigate to="/play" replace />;
 
   const records = finished?.records;
-  const anyRecord = !!records && (records.bestReturn || records.bestFinalValue || records.bestScore);
+  const firstRun = finished?.firstRun ?? false;
+  const anyRecord = !firstRun && !!records && (records.bestReturn || records.bestFinalValue || records.bestScore);
   const style = TRADING_STYLES[stats.style.primary];
   const secondary = stats.style.secondary ? TRADING_STYLES[stats.style.secondary] : null;
   const runAchievements = game.runAchievements.map((id) => ACHIEVEMENT_MAP.get(id)).filter((a) => !!a);
@@ -100,7 +101,7 @@ export function ResultScreen() {
             </div>
           )}
           {stage >= 4 && (
-            <div className={`mt-3 animate-stamp font-mono text-4xl font-extrabold sm:text-5xl ${trendClass(stats.returnPct)}`}>
+            <div className={`mt-3 animate-stamp font-mono text-[clamp(2rem,10vw,3rem)] font-extrabold whitespace-nowrap ${trendClass(stats.returnPct)}`}>
               {directionSymbol(stats.returnPct)} {formatPct(stats.returnPct)}
               <div className="num mt-1 text-sm font-semibold">{formatKRW(stats.totalPnL, { sign: true })}</div>
             </div>
@@ -108,6 +109,11 @@ export function ResultScreen() {
           {stage >= 5 && anyRecord && (
             <div className="mt-4 inline-flex animate-stamp items-center gap-2 rounded-md border-2 border-[var(--color-amber)] px-4 py-1.5 font-mono text-lg font-extrabold tracking-[0.06em] text-[var(--color-amber)]">
               ★ 신기록
+            </div>
+          )}
+          {stage >= 5 && firstRun && (
+            <div className="mt-4 inline-flex animate-stamp items-center gap-2 rounded-md border border-[var(--color-line-strong)] px-3 py-1 font-mono text-sm font-bold text-[var(--color-muted)]">
+              첫 완주 기록 등록
             </div>
           )}
           {stage >= 5 && (
@@ -228,7 +234,7 @@ function FinalValueCounter({ from, to }: { from: number; to: number }) {
   const shown = useDelayedValue(from, to, 150);
   return (
     <>
-      <AnimatedNumber value={shown} format={formatKRW} duration={1300} flash={false} className="block text-5xl font-extrabold tracking-tight sm:text-7xl" />
+      <AnimatedNumber value={shown} format={formatKRW} duration={1300} flash={false} className="block text-[clamp(2.25rem,12vw,4.5rem)] font-extrabold tracking-tight" />
       <span className="sr-only" aria-live="polite">
         최종 자산 {formatKRW(to)}, 시작 자산 {formatKRW(from)}
       </span>

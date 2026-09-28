@@ -90,6 +90,11 @@ export interface EventTemplate {
   followThrough: number;
   /** Earliest / latest day this event may be scheduled. */
   dayRange?: [number, number];
+  /**
+   * Scheduled, publicly known events (earnings dates, trial readouts, rate decisions) appear
+   * on the calendar a few days ahead with this label — the direction stays hidden.
+   */
+  calendar?: string;
   /** Optional pre-event hint text published the day before. */
   hint?: { title: string; summary: string };
   /** Mega events are placed by the scheduler's guarantees, not the random draw. */

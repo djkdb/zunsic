@@ -50,6 +50,8 @@ export interface OrderFlash {
 export interface FinishedRun {
   stats: FinalStats;
   records: { bestReturn: boolean; bestFinalValue: boolean; bestScore: boolean };
+  /** First completed run — there was no previous record to beat. */
+  firstRun: boolean;
   newAchievements: AchievementId[];
 }
 
@@ -63,6 +65,7 @@ interface GameStore {
   toasts: Toast[];
   orderFlash: OrderFlash | null;
   loadNotice: string | null;
+  helpOpen: boolean;
 
   hydrate: () => void;
   newGame: (difficulty?: DifficultyId, seed?: number) => void;
@@ -87,6 +90,7 @@ interface GameStore {
   dismissToast: (id: number) => void;
   clearOrderFlash: () => void;
   clearLoadNotice: () => void;
+  setHelpOpen: (open: boolean) => void;
   debug: {
     nextDay: () => void;
     trigger: (kind: 'BULL' | 'CRASH' | 'RANDOM') => void;
@@ -120,8 +124,12 @@ export const useGameStore = create<GameStore>()((set, get) => {
     get().pushToast({ kind: 'error', title: '시스템 오류', message });
   };
 
-  /** Apply a new game state and unlock any achievements it earned. */
+  /**
+   * Apply a new game state and unlock any achievements it earned.
+   * At game completion the result screen presents achievements itself, so no toasts.
+   */
   const commit = (next: GameState): AchievementId[] => {
+    const silent = next.phase === 'GAME_COMPLETE' || next.phase === 'RESULT';
     const meta = get().meta;
     const earned = safe(() => evaluateAchievements(next, STOCKS), fail) ?? [];
     const fresh = earned.filter((id) => !meta.achievements[id]);
@@ -132,7 +140,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
       const achievements = { ...meta.achievements };
       for (const id of fresh) achievements[id] = now;
       set({ game, meta: { ...meta, achievements } });
-      for (const id of fresh) {
+      if (!silent) for (const id of fresh) {
         const def = ACHIEVEMENT_MAP.get(id);
         if (def) get().pushToast({ kind: 'achievement', title: def.title, message: def.description });
       }
@@ -158,6 +166,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
     toasts: [],
     orderFlash: null,
     loadNotice: null,
+    helpOpen: false,
 
     hydrate: () => {
       const meta = loadMeta();
@@ -212,23 +221,49 @@ export const useGameStore = create<GameStore>()((set, get) => {
       return { ok: true, tx: r.value.transaction };
     },
 
-    openMarket: () =>
+    openMarket: () => {
       withGame((g) => {
         if (g.phase !== 'DAY_START') return g;
         return transition(g, breakingNewsFor(g).length > 0 ? 'NEWS_EVENT' : 'TRADING');
-      }),
+      });
+      // Quiet day with fresh rumors: make sure the player notices them.
+      const g = get().game;
+      if (g?.phase === 'TRADING') {
+        const hints = g.news.filter((n) => n.day === g.day && (n.kind === 'RUMOR' || n.kind === 'ANALYST'));
+        if (hints[0]) {
+          get().pushToast({
+            kind: 'info',
+            title: hints.length > 1 ? `새 시장 소문 ${hints.length}건 · 미확인` : '새 시장 소문 · 미확인',
+            message: hints[0].title,
+          });
+        }
+      }
+    },
 
     dismissNews: () => withGame((g) => (g.phase === 'NEWS_EVENT' ? transition(g, 'TRADING') : g)),
 
     closeMarket: () => withGame((g) => (g.phase === 'TRADING' ? closeDay(g, STOCKS) : g)),
 
-    showSummary: () => withGame((g) => (g.phase === 'MARKET_CLOSED' ? transition(g, 'DAY_SUMMARY') : g)),
+    showSummary: () =>
+      withGame((g) => {
+        if (g.phase !== 'MARKET_CLOSED') return g;
+        const summary = transition(g, 'DAY_SUMMARY');
+        // "Skip report" setting: go straight to the next session (never skip the final day).
+        if (get().meta.settings.skipReport && g.day < g.totalDays) {
+          set({ toasts: get().toasts.filter((t) => t.kind !== 'info') });
+          return startNextDay(summary, STOCKS);
+        }
+        return summary;
+      }),
 
-    continueFromSummary: () =>
+    continueFromSummary: () => {
+      // Yesterday's rumor alerts are stale once a new day starts.
+      set({ toasts: get().toasts.filter((t) => t.kind !== 'info') });
       withGame((g) => {
         if (g.phase !== 'DAY_SUMMARY') return g;
         return g.day >= g.totalDays ? finishGame(g, STOCKS) : startNextDay(g, STOCKS);
-      }),
+      });
+    },
 
     showResult: () => {
       const current = get().game;
@@ -272,9 +307,10 @@ export const useGameStore = create<GameStore>()((set, get) => {
         (id) => (meta.achievements[id] ?? 0) >= g.startedAt,
       ) as AchievementId[];
       set({
+        toasts: [], // the result screen presents achievements itself
         game: { ...g, phase: 'RESULT' },
         meta: { ...meta, personalBest },
-        finished: { stats, records, newAchievements },
+        finished: { stats, records, newAchievements, firstRun: g.phase === 'GAME_COMPLETE' && pb.gamesPlayed === 0 },
       });
     },
 
@@ -292,6 +328,10 @@ export const useGameStore = create<GameStore>()((set, get) => {
     dismissToast: (id) => set({ toasts: get().toasts.filter((t) => t.id !== id) }),
     clearOrderFlash: () => set({ orderFlash: null }),
     clearLoadNotice: () => set({ loadNotice: null }),
+    setHelpOpen: (open) => {
+      set({ helpOpen: open });
+      if (!open && !get().meta.settings.seenTutorial) get().updateSettings({ seenTutorial: true });
+    },
 
     debug: {
       nextDay: () => {
@@ -332,6 +372,10 @@ let lastSavedMeta: MetaData | null = null;
 let warnedStorage = false;
 
 export function startPersistence(): () => void {
+  // Whatever was just hydrated is already on disk — only write real changes
+  // (avoids clobbering data another tab saved in the meantime).
+  lastSavedGame = useGameStore.getState().game;
+  lastSavedMeta = useGameStore.getState().meta;
   const flush = () => {
     const { game, meta } = useGameStore.getState();
     let ok = true;

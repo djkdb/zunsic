@@ -48,6 +48,16 @@ export function SettingsScreen() {
             ]}
             onChange={(v) => update({ fastMode: v === 'on' })}
           />
+          <Choice<'on' | 'off'>
+            label="일일 리포트 건너뛰기"
+            description="장 마감 후 결산 화면 없이 바로 다음 날로 넘어갑니다. (마지막 날은 항상 표시)"
+            value={settings.skipReport ? 'on' : 'off'}
+            options={[
+              ['off', '끄기'],
+              ['on', '켜기'],
+            ]}
+            onChange={(v) => update({ skipReport: v === 'on' })}
+          />
         </Group>
 
         <Group title="게임">
@@ -58,6 +68,17 @@ export function SettingsScreen() {
             options={DIFFICULTY_IDS.map((d) => [d, DIFFICULTY_LABEL[d]] as const)}
             onChange={(v) => update({ difficulty: v })}
           />
+          <div className="flex items-center justify-between gap-3 py-3">
+            <div>
+              <div className="text-sm font-semibold">게임 방법 안내</div>
+              <div className="text-[12px] text-[var(--color-dim)]">
+                {settings.seenTutorial ? '다음에 장이 열릴 때 게임 방법을 다시 보여줍니다.' : '다음에 장이 열릴 때 표시됩니다.'}
+              </div>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => update({ seenTutorial: false })} disabled={!settings.seenTutorial}>
+              다시 보기
+            </Button>
+          </div>
           {game && game.phase !== 'RESULT' && (
             <div className="flex items-center justify-between gap-3 py-3">
               <div>

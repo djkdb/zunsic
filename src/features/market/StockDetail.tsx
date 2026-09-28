@@ -77,7 +77,7 @@ export function StockDetail({ stockId, chartHeight = 300 }: StockDetailProps) {
 
       {/* Chart */}
       <div className="panel p-3 sm:p-4">
-        <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
           <div role="tablist" aria-label="차트 기간" className="flex gap-1 rounded-lg bg-[var(--color-panel-2)] p-1">
             {PERIODS.map((p) => (
               <button
@@ -94,7 +94,7 @@ export function StockDetail({ stockId, chartHeight = 300 }: StockDetailProps) {
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-3 font-mono text-[11px] text-[var(--color-dim)]">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] text-[var(--color-dim)]">
             <span>
               고가 <span className="text-[var(--color-muted)]">{formatKRW(hi)}</span>
             </span>
