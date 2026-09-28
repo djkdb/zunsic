@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { DIFFICULTY_IDS } from '@/data/difficulties';
 import { DIFFICULTY_LABEL } from '@/lib/labels';
+import { playSfx } from '@/audio/sfx';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useGameStore } from '@/store/gameStore';
@@ -25,6 +26,43 @@ export function SettingsScreen() {
           ◂ 뒤로
         </button>
         <h1 className="font-mono text-3xl font-extrabold">설정</h1>
+
+        <Group title="사운드">
+          <Choice<'on' | 'off'>
+            label="효과음"
+            description="매수·매도, 속보, 장 시작·마감, 결과 발표 효과음."
+            value={settings.sound ? 'on' : 'off'}
+            options={[
+              ['on', '켜기'],
+              ['off', '끄기'],
+            ]}
+            onChange={(v) => {
+              update({ sound: v === 'on' });
+              if (v === 'on') setTimeout(() => playSfx('buy'), 30);
+            }}
+          />
+          <div className="flex flex-wrap items-center justify-between gap-3 py-3">
+            <label htmlFor="volume" className="text-sm font-semibold">
+              볼륨
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                id="volume"
+                type="range"
+                min={0}
+                max={100}
+                step={5}
+                value={Math.round(settings.volume * 100)}
+                disabled={!settings.sound}
+                onChange={(e) => update({ volume: Number(e.target.value) / 100 })}
+                onPointerUp={() => playSfx('sell')}
+                onKeyUp={() => playSfx('tick')}
+                className="w-40 accent-[var(--color-ink)] disabled:opacity-40"
+              />
+              <span className="num w-10 text-right text-xs text-[var(--color-muted)]">{Math.round(settings.volume * 100)}%</span>
+            </div>
+          </div>
+        </Group>
 
         <Group title="화면 효과">
           <Choice<Settings['reducedMotion']>

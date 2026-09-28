@@ -5,6 +5,7 @@ import { maxBuyable, validateOrder } from '@/engine/tradingEngine';
 import { Button } from '@/components/ui/Button';
 import { formatKRW, formatPct, trendClass } from '@/lib/format';
 import { useGameStore } from '@/store/gameStore';
+import { playSfx } from '@/audio/sfx';
 
 interface OrderPanelProps {
   stockId: string;
@@ -38,8 +39,14 @@ export function OrderPanel({ stockId, initialSide = 'BUY', onExecuted, showStock
   const preview = check?.ok ? check.value : null;
   const error = check && !check.ok ? check.error : null;
 
-  const setFraction = (f: number) => setQtyText(String(Math.max(0, Math.floor(max * f))));
-  const bump = (d: number) => setQtyText(String(Math.max(0, (Number.isFinite(qty ?? NaN) ? Math.floor(qty ?? 0) : 0) + d)));
+  const setFraction = (f: number) => {
+    playSfx('tick');
+    setQtyText(String(Math.max(0, Math.floor(max * f))));
+  };
+  const bump = (d: number) => {
+    playSfx('tick');
+    setQtyText(String(Math.max(0, (Number.isFinite(qty ?? NaN) ? Math.floor(qty ?? 0) : 0) + d)));
+  };
 
   const submit = () => {
     const shares = qty ?? 0;

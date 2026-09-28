@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useDelayedValue } from '@/hooks/useDelayedValue';
+import { useSfxOnMount } from '@/audio/useSfx';
 import { GAME_TITLE } from '@/domain/constants';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { Modal } from '@/components/ui/Modal';
@@ -13,6 +14,7 @@ export function DayStartSplash() {
   const scale = useTimeScale();
   const day = game?.day ?? 0;
   const first = day === 1;
+  useSfxOnMount(first ? 'firstOpen' : 'marketOpen');
 
   useEffect(() => {
     const t = setTimeout(openMarket, (first ? 3000 : 1500) * scale);

@@ -2,11 +2,13 @@ import { useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { useTimeScale } from '@/hooks/useMotion';
 import { useGameStore } from '@/store/gameStore';
+import { useSfxOnMount } from '@/audio/useSfx';
 
 export function MarketClosedSplash() {
   const day = useGameStore((s) => s.game?.day ?? 0);
   const showSummary = useGameStore((s) => s.showSummary);
   const scale = useTimeScale();
+  useSfxOnMount('marketClose');
   useEffect(() => {
     const t = setTimeout(showSummary, 1100 * scale);
     return () => clearTimeout(t);

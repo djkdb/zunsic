@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { playSfx } from '@/audio/sfx';
 import { ACHIEVEMENT_MAP, type AchievementId } from '@/data/achievements';
 import { STOCKS } from '@/data/stocks';
 import type { DifficultyId, GameState, MarketStateId, TradeError, Transaction } from '@/domain/types';
@@ -214,9 +215,11 @@ export const useGameStore = create<GameStore>()((set, get) => {
       const r = executeOrder(g, order, STOCKS);
       if (!r.ok) {
         get().pushToast({ kind: 'error', title: '주문 불가', message: r.error.message });
+        playSfx('blocked');
         return r;
       }
       commit(r.value.state);
+      playSfx(r.value.transaction.type === 'BUY' ? 'buy' : 'sell');
       set({ orderFlash: { id: ++flashId, tx: r.value.transaction } });
       return { ok: true, tx: r.value.transaction };
     },

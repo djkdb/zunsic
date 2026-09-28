@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useSfxOnMount } from '@/audio/useSfx';
 import { createPortal } from 'react-dom';
 import { useGameStore, type Toast } from '@/store/gameStore';
 
@@ -28,6 +29,7 @@ const STYLE: Record<Toast['kind'], { border: string; label: string; icon: string
 
 function ToastItem({ toast }: { toast: Toast }) {
   const dismiss = useGameStore((s) => s.dismissToast);
+  useSfxOnMount(toast.kind === 'achievement' ? 'achievement' : toast.kind === 'info' ? 'rumor' : null);
   useEffect(() => {
     const t = setTimeout(() => dismiss(toast.id), toast.kind === 'achievement' ? 5000 : 3800);
     return () => clearTimeout(t);

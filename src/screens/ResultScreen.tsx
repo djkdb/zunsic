@@ -12,6 +12,7 @@ import { directionSymbol, formatKRW, formatPct, trendClass } from '@/lib/format'
 import { DIFFICULTY_LABEL } from '@/lib/labels';
 import { useTimeScale } from '@/hooks/useMotion';
 import { useDelayedValue } from '@/hooks/useDelayedValue';
+import { playSfx } from '@/audio/sfx';
 import { useGameStore } from '@/store/gameStore';
 import { ShareDialog } from '@/features/share/ShareDialog';
 import type { ShareCardData } from '@/features/share/shareCard';
@@ -43,6 +44,15 @@ export function ResultScreen() {
     if (game && (game.phase === 'RESULT' || game.phase === 'GAME_COMPLETE')) return computeFinalStats(game, STOCKS);
     return null;
   }, [finished, game]);
+
+  // Sound track of the reveal: count-up ticks → win/lose sting → record sparkle.
+  const outcome = stats ? (stats.returnPct >= 0 ? 'win' : 'lose') : null;
+  const isRecord = !!finished && !finished.firstRun && (finished.records.bestReturn || finished.records.bestFinalValue || finished.records.bestScore);
+  useEffect(() => {
+    if (stage === 3) playSfx('count');
+    if (stage === 4 && outcome) playSfx(outcome);
+    if (stage === 5 && isRecord) playSfx('record');
+  }, [stage, outcome, isRecord]);
 
   const valuePoints = useMemo<PricePoint[]>(
     () => (game ? game.valueHistory.slice(0, game.day + 1).map((price, day) => ({ day, tick: 12, price })) : []),

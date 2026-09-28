@@ -11,6 +11,7 @@ import { useIsDesktop } from '@/hooks/useMediaQuery';
 import { useTimeScale } from '@/hooks/useMotion';
 import { useGameStore } from '@/store/gameStore';
 import { getTodayHints } from '@/store/selectors';
+import { playSfx } from '@/audio/sfx';
 import { SEVERITY_LABEL } from '@/lib/labels';
 import { computeIndex } from '@/engine/marketEngine';
 
@@ -48,6 +49,14 @@ export function BreakingNewsOverlay() {
     const timers = times.map((t, i) => setTimeout(() => setStage(i + 1), t * scale));
     return () => timers.forEach(clearTimeout);
   }, [scale]);
+
+  // Sound: sting when the badge lands, then the price reveal.
+  const mainKind = data?.main.kind;
+  const mainDir = data?.main.direction;
+  useEffect(() => {
+    if (stage === 2) playSfx(mainKind === 'MARKET' ? (mainDir === -1 ? 'crash' : 'rally') : 'breaking');
+    if (stage === 5 && mainKind !== 'MARKET') playSfx(mainDir === -1 ? 'reveal-down' : 'reveal-up');
+  }, [stage, mainKind, mainDir]);
 
   // The action buttons only appear at the end of the sequence: move focus there so
   // Enter / Space continues (the modal's initial focus ran before they existed).

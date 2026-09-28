@@ -40,6 +40,9 @@ export interface Settings {
   skipReport: boolean;
   /** First-game "how to play" guide has been seen. */
   seenTutorial: boolean;
+  /** Sound effects on/off and volume (0..1). */
+  sound: boolean;
+  volume: number;
 }
 
 export interface MetaData {
@@ -55,6 +58,8 @@ export const DEFAULT_SETTINGS: Settings = {
   difficulty: 'NORMAL',
   skipReport: false,
   seenTutorial: false,
+  sound: true,
+  volume: 0.6,
 };
 
 export const DEFAULT_META: MetaData = {
@@ -190,6 +195,8 @@ export function loadMeta(): MetaData {
           settings.difficulty === 'CASUAL' || settings.difficulty === 'HARD' ? settings.difficulty : 'NORMAL',
         skipReport: settings.skipReport === true,
         seenTutorial: settings.seenTutorial === true,
+        sound: settings.sound !== false,
+        volume: isNum(settings.volume) ? Math.min(1, Math.max(0, settings.volume)) : 0.6,
       },
     };
   } catch {

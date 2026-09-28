@@ -12,6 +12,8 @@ export function TopBar() {
   const game = useGameStore((s) => s.game);
   const closeMarket = useGameStore((s) => s.closeMarket);
   const setHelpOpen = useGameStore((s) => s.setHelpOpen);
+  const sound = useGameStore((s) => s.meta.settings.sound);
+  const updateSettings = useGameStore((s) => s.updateSettings);
   if (!game) return null;
   const index = getIndexView(game);
   const valuation = getValuation(game);
@@ -53,6 +55,16 @@ export function TopBar() {
           >
             {lastDay ? '최종 정산 ■' : '다음 날 ▸'}
           </Button>
+          <button
+            type="button"
+            onClick={() => updateSettings({ sound: !sound })}
+            className="hidden h-10 w-10 place-items-center rounded-lg border border-[var(--color-line-strong)] text-[var(--color-muted)] hover:text-[var(--color-ink)] min-[360px]:grid"
+            aria-label={sound ? '효과음 끄기' : '효과음 켜기'}
+            aria-pressed={sound}
+            title={sound ? '효과음 끄기' : '효과음 켜기'}
+          >
+            {sound ? '🔊' : '🔇'}
+          </button>
           <button
             type="button"
             onClick={() => setHelpOpen(true)}

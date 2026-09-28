@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router';
 import { useMotionAttribute } from '@/hooks/useMotion';
+import { useSfxSetup } from '@/audio/useSfx';
 import { startPersistence, useGameStore } from '@/store/gameStore';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { SetupScreen } from '@/screens/SetupScreen';
@@ -16,6 +17,7 @@ const DebugPanel = lazy(() => import('@/features/debug/DebugPanel'));
 export function App() {
   const hydrate = useGameStore((s) => s.hydrate);
   useMotionAttribute();
+  useSfxSetup();
   useEffect(() => {
     hydrate();
     return startPersistence();

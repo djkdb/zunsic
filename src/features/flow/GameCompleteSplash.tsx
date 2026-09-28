@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router';
 import { Modal } from '@/components/ui/Modal';
 import { useTimeScale } from '@/hooks/useMotion';
 import { useGameStore } from '@/store/gameStore';
+import { useSfxOnMount } from '@/audio/useSfx';
 
 export function GameCompleteSplash() {
   const showResult = useGameStore((s) => s.showResult);
   const total = useGameStore((s) => s.game?.totalDays ?? 30);
   const navigate = useNavigate();
   const scale = useTimeScale();
+  useSfxOnMount('marketClose');
   useEffect(() => {
     const t = setTimeout(() => {
       showResult();

@@ -242,3 +242,33 @@ test('first-time guide, keyboard flow and upcoming calendar', async ({ page }) =
   await page.getByRole('button', { name: '게임 방법' }).click();
   await expect(page.getByRole('heading', { name: /30일 버티기/ })).toBeVisible();
 });
+
+test('sound effects play on trades and respect the mute toggle', async ({ page }) => {
+  await page.addInitScript(() => {
+    const w = window as unknown as { __osc: number };
+    w.__osc = 0;
+    const orig = AudioContext.prototype.createOscillator;
+    AudioContext.prototype.createOscillator = function (this: AudioContext) {
+      w.__osc++;
+      return orig.call(this);
+    };
+  });
+  await primeSettings(page);
+  await startGame(page);
+  const osc = () => page.evaluate(() => (window as unknown as { __osc: number }).__osc);
+  const buyOne = async () => {
+    await page.getByRole('radio', { name: '▲ 매수' }).click();
+    await page.getByLabel('수량', { exact: true }).fill('1');
+    await page.getByRole('button', { name: /^NOVA 매수/ }).click();
+    await page.waitForTimeout(150);
+  };
+  let before = await osc();
+  await buyOne();
+  expect(await osc()).toBeGreaterThan(before);
+
+  await page.getByRole('button', { name: '효과음 끄기' }).click();
+  before = await osc();
+  await buyOne();
+  expect(await osc()).toBe(before);
+  await expect(page.getByRole('button', { name: '효과음 켜기' })).toBeVisible();
+});
