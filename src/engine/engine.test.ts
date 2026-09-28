@@ -327,3 +327,92 @@ describe('News readability', () => {
     expect(found).toBeGreaterThan(0);
   });
 });
+
+describe('Rival, chance cards, chatter', () => {
+  it('rival is deterministic and independent of the player', () => {
+    let a = createNewGame({ stocks: STOCKS, seed: 99, rival: 'MOMENTUM_KIM' });
+    let b = createNewGame({ stocks: STOCKS, seed: 99, rival: 'MOMENTUM_KIM' });
+    a = trading(a);
+    b = buy(trading(b), 'nova', 30); // player acts differently
+    for (let d = 0; d < 10; d++) {
+      a = nextDay(a);
+      b = nextDay(b);
+    }
+    expect(a.rival.valueHistory).toEqual(b.rival.valueHistory);
+    expect(a.rival.valueHistory[10]).toBeGreaterThan(0);
+  });
+
+  it('index granny buys everything on day 1 and holds', () => {
+    const g = createNewGame({ stocks: STOCKS, seed: 5, rival: 'INDEX_GRANNY' });
+    expect(Object.keys(g.rival.holdings)).toHaveLength(STOCKS.length);
+    const later = nextDay(nextDay(trading(g)));
+    expect(later.rival.holdings).toEqual(g.rival.holdings);
+  });
+
+  it('loss shield refunds losses beyond 5% and keeps the P&L invariant', async () => {
+    const { playCard } = await import('./cardEngine');
+    // Find a seed/day where the held stock falls more than 5% overnight
+    for (let seed = 1; seed < 400; seed++) {
+      let s = buy(newGame(seed), 'orbt', 40);
+      const r = playCard(s, 'SHIELD', STOCKS);
+      expect(r.ok).toBe(true);
+      if (!r.ok) return;
+      s = r.value;
+      const next = nextDay(s);
+      const change = next.prices.orbt! / s.prices.orbt! - 1;
+      if (change < -0.05) {
+        const expected = Math.round(40 * s.prices.orbt! * (-change - 0.05));
+        expect(next.bonusPnL).toBe(expected);
+        expect(next.cash).toBe(s.cash + expected);
+        const v = valuation(next);
+        expect(v.totalValue - next.startingCash).toBeCloseTo(v.totalPnL, 6);
+        // Second use is refused
+        expect(playCard(next, 'SHIELD', STOCKS).ok).toBe(false);
+        return;
+      }
+    }
+    throw new Error('no shield trigger found');
+  });
+
+  it('tomorrow paper shows the actual next-day headlines; analyst needs a calendar event', async () => {
+    const { playCard, cardAvailability } = await import('./cardEngine');
+    const s = newGame(20260928);
+    const r = playCard(s, 'PAPER', STOCKS);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    const titles = r.value.cards.PAPER.paper!.items.map((i) => i.title);
+    const actual = s.schedule.filter((e) => e.day === 2).map((e) => e.title);
+    for (const t of titles) expect(actual).toContain(t);
+    const avail = cardAvailability(s, 'ANALYST', STOCKS);
+    if (avail.ok) {
+      const a = playCard(s, 'ANALYST', STOCKS);
+      expect(a.ok && a.value.cards.ANALYST.analyst?.label).toBeTruthy();
+    }
+    expect(cardAvailability({ ...s, phase: 'DAY_SUMMARY' }, 'PAPER', STOCKS).ok).toBe(false);
+  });
+
+  it('chatter is deterministic and never empty', async () => {
+    const { generateChatter } = await import('./chatter');
+    let s = newGame(7);
+    for (let d = 0; d < 5; d++) s = nextDay(s);
+    const a = generateChatter(s, STOCKS);
+    const b = generateChatter(s, STOCKS);
+    expect(a).toEqual(b);
+    expect(a.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('older saves without new fields are normalized', async () => {
+    const { normalizeGame } = await import('./gameEngine');
+    const s = newGame(1);
+    const legacy = JSON.parse(JSON.stringify(s));
+    delete legacy.rival;
+    delete legacy.cards;
+    delete legacy.bonusPnL;
+    delete legacy.cardLog;
+    const n = normalizeGame(legacy);
+    expect(n.rival.id).toBeTruthy();
+    expect(n.cards.SHIELD).toEqual({});
+    expect(n.bonusPnL).toBe(0);
+    expect(() => nextDay(n)).not.toThrow();
+  });
+});

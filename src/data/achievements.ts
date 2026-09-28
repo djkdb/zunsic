@@ -10,7 +10,8 @@ export type AchievementId =
   | 'BUY_THE_DIP'
   | 'SNIPER'
   | 'MARKET_BEATER'
-  | 'FULL_30';
+  | 'FULL_30'
+  | 'RIVAL_BEATEN';
 
 export interface AchievementDefinition {
   id: AchievementId;
@@ -32,6 +33,7 @@ export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
   { id: 'SNIPER', title: '스나이퍼', description: '단일 거래로 ₩100,000 이상 수익을 실현했다.', icon: '⌖' },
   { id: 'MARKET_BEATER', title: '시장 초과 수익', description: '시장 지수보다 5%p 이상 높은 수익률로 마감했다.', icon: '⇡' },
   { id: 'FULL_30', title: '30일 완주', description: '30일 게임을 끝까지 완주했다.', icon: '30' },
+  { id: 'RIVAL_BEATEN', title: '라이벌 격파', description: 'AI 라이벌보다 높은 수익률로 마감했다.', icon: '⚔' },
 ];
 
 export const ACHIEVEMENT_MAP: ReadonlyMap<string, AchievementDefinition> = new Map(ACHIEVEMENTS.map((a) => [a.id, a]));

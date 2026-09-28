@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router';
 import { useMotionAttribute } from '@/hooks/useMotion';
-import { useSfxSetup } from '@/audio/useSfx';
+import { useMusicDirector, useSfxSetup } from '@/audio/useSfx';
 import { startPersistence, useGameStore } from '@/store/gameStore';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { SetupScreen } from '@/screens/SetupScreen';
@@ -27,6 +27,7 @@ export function App() {
     <ErrorBoundary>
       <HashRouter>
         <ScrollToTop />
+        <MusicDirector />
         <Routes>
           <Route path="/" element={<HomeScreen />} />
           <Route path="/setup" element={<SetupScreen />} />
@@ -44,6 +45,12 @@ export function App() {
       </HashRouter>
     </ErrorBoundary>
   );
+}
+
+/** Adaptive background music follows the screen and market regime. */
+function MusicDirector() {
+  useMusicDirector();
+  return null;
 }
 
 /** New screen → start at the top (the browser keeps the old scroll offset otherwise). */

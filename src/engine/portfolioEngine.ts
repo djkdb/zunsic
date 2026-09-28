@@ -41,6 +41,8 @@ export interface Valuation {
   costBasis: number;
   realizedPnL: number;
   unrealizedPnL: number;
+  /** Chance-card payouts (loss shield). */
+  bonusPnL: number;
   totalPnL: number;
   /** Return vs. capital (starting cash + injections). */
   returnPct: number;
@@ -66,7 +68,7 @@ export function averageIn(holding: Holding | undefined, shares: number, price: n
 }
 
 export function valuePortfolio(
-  state: Pick<GameState, 'cash' | 'holdings' | 'realizedPnL' | 'startingCash' | 'capitalInjected' | 'valueHistory' | 'day'>,
+  state: Pick<GameState, 'cash' | 'holdings' | 'realizedPnL' | 'startingCash' | 'capitalInjected' | 'valueHistory' | 'day'> & { bonusPnL?: number },
   prices: Record<string, number>,
   prevPrices: Record<string, number>,
   stocks: readonly StockDefinition[],
@@ -116,7 +118,8 @@ export function valuePortfolio(
     costBasis,
     realizedPnL: state.realizedPnL,
     unrealizedPnL,
-    totalPnL: state.realizedPnL + unrealizedPnL,
+    bonusPnL: state.bonusPnL ?? 0,
+    totalPnL: state.realizedPnL + unrealizedPnL + (state.bonusPnL ?? 0),
     returnPct: base > 0 ? totalValue / base - 1 : 0,
     dailyPnL,
     dailyPct: prevValue > 0 ? dailyPnL / prevValue : 0,

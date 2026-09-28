@@ -20,6 +20,9 @@ import { History } from '@/features/history/History';
 import { FlowController } from '@/features/flow/FlowController';
 import { OrderExecutedFlash } from '@/features/flow/OrderExecutedFlash';
 import { HowToPlay } from '@/features/flow/HowToPlay';
+import { RivalPanel } from '@/features/rival/RivalPanel';
+import { ChanceCards } from '@/features/cards/ChanceCards';
+import { Chatter } from '@/features/community/Chatter';
 import { UpcomingCalendar } from '@/features/news/UpcomingCalendar';
 
 export function GameScreen() {
@@ -29,7 +32,7 @@ export function GameScreen() {
   if (!hasGame) return <Navigate to="/" replace />;
   if (phase === 'RESULT') return <Navigate to="/result" replace />;
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className={desktop ? 'flex h-dvh flex-col overflow-hidden' : 'flex min-h-dvh flex-col'}>
       <TopBar />
       <TickerTape />
       {desktop ? <DesktopTerminal /> : <MobileGame />}
@@ -43,8 +46,8 @@ export function GameScreen() {
 
 // ───────────────────────── Desktop: trading terminal ─────────────────────────
 
-type BottomTab = 'NEWS' | 'HOLDINGS' | 'HISTORY';
-const BOTTOM_TAB_LABEL: Record<BottomTab, string> = { HOLDINGS: '보유 종목', NEWS: '뉴스', HISTORY: '거래 내역' };
+type BottomTab = 'NEWS' | 'HOLDINGS' | 'HISTORY' | 'CHAT';
+const BOTTOM_TAB_LABEL: Record<BottomTab, string> = { HOLDINGS: '보유 종목', NEWS: '뉴스', CHAT: '개미 토론방', HISTORY: '거래 내역' };
 
 function DesktopTerminal() {
   const selected = useGameStore((s) => s.selectedStockId);
@@ -52,9 +55,9 @@ function DesktopTerminal() {
   const [tab, setTab] = useState<BottomTab>('HOLDINGS');
 
   return (
-    <main className="grid flex-1 grid-cols-[240px_minmax(0,1fr)_320px] grid-rows-[minmax(0,1fr)] gap-3 p-3 xl:grid-cols-[280px_minmax(0,1fr)_360px] 2xl:gap-4 2xl:p-4" style={{ height: 'calc(100dvh - 3.5rem - 30px)' }}>
+    <main className="grid min-h-0 flex-1 grid-cols-[240px_minmax(0,1fr)_320px] grid-rows-[minmax(0,1fr)] gap-3 p-3 xl:grid-cols-[280px_minmax(0,1fr)_360px] 2xl:gap-4 2xl:p-4">
       {/* Left: index + watchlist */}
-      <aside className="flex min-h-0 flex-col gap-3" aria-label="시장">
+      <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto scrollbar-thin" aria-label="시장">
         <MarketIndexCard chartHeight={110} />
         <div className="panel flex min-h-0 flex-1 flex-col overflow-hidden">
           <div className="label border-b border-[var(--color-line)] px-3 py-2">관심 종목</div>
@@ -62,6 +65,7 @@ function DesktopTerminal() {
             <Watchlist onSelect={selectStock} />
           </div>
         </div>
+        <RivalPanel />
       </aside>
 
       {/* Center: chart + bottom tabs */}
@@ -69,7 +73,7 @@ function DesktopTerminal() {
         <StockDetail stockId={selected} chartHeight={320} />
         <div className="panel min-h-[260px] overflow-hidden">
           <div role="tablist" aria-label="하단 패널" className="flex border-b border-[var(--color-line)]">
-            {(['HOLDINGS', 'NEWS', 'HISTORY'] as BottomTab[]).map((t) => (
+            {(['HOLDINGS', 'NEWS', 'CHAT', 'HISTORY'] as BottomTab[]).map((t) => (
               <button
                 key={t}
                 role="tab"
@@ -85,6 +89,7 @@ function DesktopTerminal() {
             {tab === 'NEWS' && <NewsFeed />}
             {tab === 'HOLDINGS' && <Holdings onSelect={selectStock} />}
             {tab === 'HISTORY' && <History />}
+            {tab === 'CHAT' && <Chatter />}
           </div>
         </div>
       </section>
@@ -93,6 +98,7 @@ function DesktopTerminal() {
       <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto pr-1 scrollbar-thin" aria-label="포트폴리오 및 주문">
         <PortfolioSummary />
         <OrderPanel stockId={selected} showStockPicker key={selected} />
+        <ChanceCards />
         <BreakingCard />
         <UpcomingCalendar />
       </aside>
@@ -111,7 +117,19 @@ function MobileGame() {
           <Route path="market" element={<MobileMarket />} />
           <Route path="stock/:ticker" element={<MobileStock />} />
           <Route path="portfolio" element={<MobilePortfolio />} />
-          <Route path="news" element={<Section title="뉴스"><NewsFeed /></Section>} />
+          <Route
+            path="news"
+            element={
+              <div className="flex flex-col gap-3">
+                <Section title="개미 토론방">
+                  <Chatter />
+                </Section>
+                <Section title="뉴스">
+                  <NewsFeed />
+                </Section>
+              </div>
+            }
+          />
           <Route path="history" element={<Section title="거래 내역"><History /></Section>} />
           <Route path="*" element={<Navigate to="/play" replace />} />
         </Routes>
@@ -136,8 +154,13 @@ function MobileDashboard() {
   return (
     <div className="flex flex-col gap-3">
       <PortfolioSummary hero />
+      <RivalPanel />
       <BreakingCard />
+      <ChanceCards />
       <UpcomingCalendar />
+      <Section title="개미 토론방">
+        <Chatter limit={3} />
+      </Section>
       <MarketIndexCard chartHeight={110} />
       <Section title="관심 종목">
         <Watchlist onSelect={open} />

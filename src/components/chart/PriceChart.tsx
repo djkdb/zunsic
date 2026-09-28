@@ -17,6 +17,8 @@ interface PriceChartProps {
   height?: number;
   /** Dashed reference line (e.g. average purchase price). */
   reference?: { value: number; label: string };
+  /** A second series drawn as a dashed line on the same scale (e.g. rival). */
+  compare?: { values: readonly number[]; label: string };
   valueFormat?: (v: number) => string;
   ariaLabel: string;
   /** Show the H / L annotations. */
@@ -55,6 +57,7 @@ export const PriceChart = memo(function PriceChart({
   markers = [],
   height = 260,
   reference,
+  compare,
   valueFormat = formatKRW,
   ariaLabel,
   showHighLow = true,
@@ -73,6 +76,7 @@ export const PriceChart = memo(function PriceChart({
     const innerH = Math.max(10, height - PAD.top - PAD.bottom);
     const values = data.map((p) => p.price);
     if (reference) values.push(reference.value);
+    if (compare) values.push(...compare.values.filter((v) => Number.isFinite(v)));
     let min = Math.min(...values);
     let max = Math.max(...values);
     const padV = (max - min || max * 0.02) * 0.1;
@@ -81,6 +85,11 @@ export const PriceChart = memo(function PriceChart({
     const x = (i: number) => PAD.left + (i / (data.length - 1)) * innerW;
     const y = (v: number) => PAD.top + (1 - (v - min) / (max - min)) * innerH;
     const line = data.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(p.price).toFixed(1)}`).join(' ');
+    const cmp = compare && compare.values.length > 1
+      ? compare.values
+          .map((v, i) => `${i === 0 ? 'M' : 'L'}${x((i * (data.length - 1)) / (compare.values.length - 1)).toFixed(1)},${y(v).toFixed(1)}`)
+          .join(' ')
+      : null;
     const area = `${line} L${x(data.length - 1).toFixed(1)},${PAD.top + innerH} L${x(0).toFixed(1)},${PAD.top + innerH} Z`;
 
     let hi = 0;
@@ -124,8 +133,9 @@ export const PriceChart = memo(function PriceChart({
       xLabels,
       yTicks: niceTicks(min, max, height < 180 ? 3 : 4),
       markers: [...grouped.values()],
+      cmp,
     };
-  }, [data, width, height, reference, markers]);
+  }, [data, width, height, reference, markers, compare]);
 
   const first = data[0]?.price ?? 0;
   const last = data[data.length - 1]?.price ?? 0;
@@ -207,6 +217,14 @@ export const PriceChart = memo(function PriceChart({
           )}
 
           <path d={geom.area} fill={`url(#${gradientId})`} style={{ transition: 'd 500ms ease' }} />
+          {geom.cmp && compare && (
+            <g>
+              <path d={geom.cmp} fill="none" stroke="var(--color-amber)" strokeOpacity="0.85" strokeWidth="1.5" strokeDasharray="4 3" />
+              <text x={PAD.left + 4} y={PAD.top + 10} className="fill-[var(--color-amber)] font-mono text-[10px]">
+                - - {compare.label}
+              </text>
+            </g>
+          )}
           <path
             d={geom.line}
             fill="none"

@@ -2,6 +2,7 @@ import { DIFFICULTIES } from '@/data/difficulties';
 import { EVENT_TEMPLATE_MAP } from '@/data/events';
 import { SAVE_VERSION, SEVERITY_RANK, TOTAL_DAYS } from '@/domain/constants';
 import type {
+  RivalId,
   DailyReport,
   DifficultyId,
   GamePhase,
@@ -16,6 +17,9 @@ import { generateSchedule, instantiateEvent } from './eventScheduler';
 import { computeIndex, generatePrehistory, simulateDay } from './marketEngine';
 import { takeSnapshot, totalValueAt } from './portfolioEngine';
 import { executeOrder } from './tradingEngine';
+import { createRival, stepRival } from './rivalEngine';
+import { emptyCards, shieldRefunds } from './cardEngine';
+import { RIVALS } from '@/data/rivals';
 
 /**
  * Game engine — lifecycle and the phase state machine.
@@ -50,6 +54,18 @@ export function transition(state: GameState, to: GamePhase): GameState {
   return { ...state, phase: to };
 }
 
+/** Fill fields added in later updates so older saves keep working. */
+export function normalizeGame(game: GameState): GameState {
+  const g = game as Partial<GameState> & GameState;
+  return {
+    ...g,
+    rival: g.rival ?? { ...createRival('INDEX_GRANNY', g.startingCash), valueHistory: g.valueHistory.map(() => g.startingCash) },
+    cards: { ...emptyCards(), ...(g.cards ?? {}) },
+    bonusPnL: g.bonusPnL ?? 0,
+    cardLog: g.cardLog ?? [],
+  };
+}
+
 /** Phases that are pure presentation and should resume into a stable phase after reload. */
 export function normalizeLoadedPhase(phase: GamePhase): GamePhase {
   if (phase === 'DAY_START' || phase === 'NEWS_EVENT') return 'TRADING';
@@ -63,6 +79,7 @@ export function createNewGame(opts: {
   difficulty?: DifficultyId;
   seed?: number;
   totalDays?: number;
+  rival?: RivalId;
 }): GameState {
   const difficultyId = opts.difficulty ?? 'NORMAL';
   const difficulty = DIFFICULTIES[difficultyId];
@@ -73,6 +90,7 @@ export function createNewGame(opts: {
   const pre = generatePrehistory(seed, stocks, difficulty);
   const schedule = generateSchedule({ seed, totalDays, difficulty, stocks });
   const initialPrices = Object.fromEntries(stocks.map((s) => [s.id, s.initialPrice]));
+  const rivalId = opts.rival ?? RIVALS[createRng(mixSeed(seed, 555)).int(0, RIVALS.length - 1)]!.id;
 
   const base: GameState = {
     version: SAVE_VERSION,
@@ -104,6 +122,10 @@ export function createNewGame(opts: {
     runAchievements: [],
     startedAt: Date.now(),
     txCounter: 0,
+    rival: createRival(rivalId, difficulty.startingCash),
+    cards: emptyCards(),
+    bonusPnL: 0,
+    cardLog: [],
   };
 
   // Day 1 opens with a quiet session (no events scheduled on day 1).
@@ -145,8 +167,27 @@ export function simulateNextDay(
     eventNews.push(regimeNews(day, result.marketState, result.marketChange));
   }
 
+  // Chance card: loss shield bought yesterday settles against today's move.
+  const shield = shieldRefunds(state, result.prices);
+  const cardLog = shield.total
+    ? [
+        ...state.cardLog,
+        {
+          day,
+          card: 'SHIELD' as const,
+          amount: shield.total,
+          text: `손실 방어권 발동: 보험금 ${shield.total.toLocaleString('ko-KR')}원 지급 (${shield.lines
+            .map((l) => stocks.find((s) => s.id === l.split(':')[0])?.ticker ?? l)
+            .join(', ')})`,
+        },
+      ]
+    : state.cardLog;
+
   const next: GameState = {
     ...state,
+    cash: state.cash + shield.total,
+    bonusPnL: state.bonusPnL + shield.total,
+    cardLog,
     day,
     prevPrices: state.prices,
     prices: result.prices,
@@ -158,6 +199,7 @@ export function simulateNextDay(
     news: [...state.news, ...eventNews],
     crashDays: result.marketState === 'CRASH' ? [...state.crashDays, day] : state.crashDays,
   };
+  next.rival = stepRival(state.rival, next, stocks);
   const valueHistory = [...next.valueHistory];
   valueHistory[day] = totalValueAt(next, next.prices);
   return { ...next, valueHistory };
@@ -346,6 +388,7 @@ export function debugResetPortfolio(state: GameState): GameState {
     capitalInjected: 0,
     holdings: {},
     realizedPnL: 0,
+    bonusPnL: 0,
     transactions: [],
     valueHistory: state.valueHistory.map(() => state.startingCash),
   };

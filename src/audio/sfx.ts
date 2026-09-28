@@ -9,18 +9,30 @@
 type Wave = OscillatorType;
 
 let ctx: AudioContext | null = null;
+/** Sound-effects bus. */
 let master: GainNode | null = null;
+/** Background-music bus (separate volume, ducked under big sound effects). */
+let musicBus: GainNode | null = null;
 let enabled = true;
 let volume = 0.6;
+let musicEnabled = true;
+let musicVolume = 0.35;
+let unlocked = false;
 
 export function configureSfx(opts: { enabled: boolean; volume: number }) {
   enabled = opts.enabled;
   volume = Math.min(1, Math.max(0, opts.volume));
-  if (master && ctx) master.gain.setTargetAtTime(volume * 0.9, ctx.currentTime, 0.02);
+  if (master && ctx) master.gain.setTargetAtTime(enabled ? volume * 0.9 : 0, ctx.currentTime, 0.02);
 }
 
-function audio(): AudioContext | null {
-  if (!enabled || typeof window === 'undefined') return null;
+export function configureMusicBus(opts: { enabled: boolean; volume: number }) {
+  musicEnabled = opts.enabled;
+  musicVolume = Math.min(1, Math.max(0, opts.volume));
+  if (musicBus && ctx) musicBus.gain.setTargetAtTime(musicEnabled ? musicVolume * 0.5 : 0, ctx.currentTime, 0.3);
+}
+
+function createContext(): AudioContext | null {
+  if (typeof window === 'undefined') return null;
   if (!ctx) {
     const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!Ctor) return null;
@@ -29,21 +41,55 @@ function audio(): AudioContext | null {
     } catch {
       return null;
     }
-    master = ctx.createGain();
-    master.gain.value = volume * 0.9;
     // Gentle limiter so stacked sounds never clip.
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -12;
     comp.ratio.value = 6;
-    master.connect(comp).connect(ctx.destination);
+    comp.connect(ctx.destination);
+    master = ctx.createGain();
+    master.gain.value = enabled ? volume * 0.9 : 0;
+    master.connect(comp);
+    musicBus = ctx.createGain();
+    musicBus.gain.value = musicEnabled ? musicVolume * 0.5 : 0;
+    musicBus.connect(comp);
   }
-  if (ctx.state === 'suspended') void ctx.resume().catch(() => {});
+  if (ctx.state === 'suspended' && unlocked) void ctx.resume().catch(() => {});
   return ctx;
+}
+
+function audio(): AudioContext | null {
+  if (!enabled) return null;
+  return createContext();
+}
+
+/** Shared graph for the music engine (null until audio is allowed). */
+export function getMusicGraph(): { ctx: AudioContext; bus: GainNode } | null {
+  if (!unlocked) return null;
+  const ac = createContext();
+  return ac && musicBus ? { ctx: ac, bus: musicBus } : null;
+}
+
+/** Briefly lower the music so a big sound effect cuts through. */
+export function duckMusic(amount = 0.35, seconds = 1.6) {
+  if (!ctx || !musicBus || !musicEnabled) return;
+  const t = ctx.currentTime;
+  const full = musicVolume * 0.5;
+  musicBus.gain.cancelScheduledValues(t);
+  musicBus.gain.setTargetAtTime(full * amount, t, 0.05);
+  musicBus.gain.setTargetAtTime(full, t + seconds, 0.4);
+}
+
+/** Pause / resume everything (tab hidden). */
+export function setAudioSuspended(suspended: boolean) {
+  if (!ctx) return;
+  if (suspended) void ctx.suspend().catch(() => {});
+  else if (unlocked) void ctx.resume().catch(() => {});
 }
 
 /** Call from a user gesture to allow later sounds. */
 export function unlockSfx() {
-  audio();
+  unlocked = true;
+  createContext();
 }
 
 interface ToneOpts {
@@ -122,9 +168,27 @@ export type SfxName =
   | 'count'
   | 'win'
   | 'lose'
-  | 'record';
+  | 'record'
+  | 'card'
+  | 'levelUp'
+  | 'shield';
 
 const SOUNDS: Record<SfxName, (ac: AudioContext) => void> = {
+  // Card flip: swoosh + magic shimmer
+  card: (ac) => {
+    noise(ac, { dur: 0.22, gain: 0.1, freq: 900, sweepTo: 5000, filter: 'bandpass' });
+    [7, 11, 14, 19].forEach((s, i) => tone(ac, { freq: NOTE(3 + s), at: 0.12 + i * 0.05, dur: 0.35, type: 'sine', gain: 0.08 }));
+  },
+  // Level up: 8-bit style fanfare
+  levelUp: (ac) => {
+    [0, 4, 7, 12, 7, 12, 16].forEach((s, i) => tone(ac, { freq: NOTE(3 + s), at: i * 0.08, dur: i === 6 ? 0.6 : 0.1, type: 'square', gain: 0.07 }));
+  },
+  // Shield payout: metallic clang + coins
+  shield: (ac) => {
+    tone(ac, { freq: 660, dur: 0.4, type: 'triangle', gain: 0.15 });
+    tone(ac, { freq: 990, at: 0.01, dur: 0.3, type: 'sine', gain: 0.08 });
+    [0.15, 0.24, 0.33].forEach((t) => tone(ac, { freq: 1976, at: t, dur: 0.15, type: 'sine', gain: 0.1 }));
+  },
   // Order filled: bright rising blip + cash click
   buy: (ac) => {
     tone(ac, { freq: NOTE(3), dur: 0.09, type: 'triangle', gain: 0.22 });
@@ -202,10 +266,14 @@ const SOUNDS: Record<SfxName, (ac: AudioContext) => void> = {
   },
 };
 
+const DUCKED: ReadonlySet<SfxName> = new Set(['crash', 'rally', 'breaking', 'win', 'lose', 'record', 'firstOpen']);
+
 export function playSfx(name: SfxName) {
+  if (!unlocked) return;
   const ac = audio();
   if (!ac || !master) return;
   try {
+    if (DUCKED.has(name)) duckMusic(name === 'crash' ? 0.15 : 0.35, name === 'crash' ? 2.4 : 1.6);
     SOUNDS[name](ac);
   } catch {
     /* never let audio break the game */

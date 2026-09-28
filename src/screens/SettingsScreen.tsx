@@ -43,7 +43,7 @@ export function SettingsScreen() {
           />
           <div className="flex flex-wrap items-center justify-between gap-3 py-3">
             <label htmlFor="volume" className="text-sm font-semibold">
-              볼륨
+              효과음 볼륨
             </label>
             <div className="flex items-center gap-3">
               <input
@@ -60,6 +60,38 @@ export function SettingsScreen() {
                 className="w-40 accent-[var(--color-ink)] disabled:opacity-40"
               />
               <span className="num w-10 text-right text-xs text-[var(--color-muted)]">{Math.round(settings.volume * 100)}%</span>
+            </div>
+          </div>
+        </Group>
+
+        <Group title="배경음악">
+          <Choice<'on' | 'off'>
+            label="배경음악"
+            description="시장 분위기(강세·약세·변동성·폭락·급등)에 따라 음악이 바뀝니다."
+            value={settings.music ? 'on' : 'off'}
+            options={[
+              ['on', '켜기'],
+              ['off', '끄기'],
+            ]}
+            onChange={(v) => update({ music: v === 'on' })}
+          />
+          <div className="flex flex-wrap items-center justify-between gap-3 py-3">
+            <label htmlFor="music-volume" className="text-sm font-semibold">
+              음악 볼륨
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                id="music-volume"
+                type="range"
+                min={0}
+                max={100}
+                step={5}
+                value={Math.round(settings.musicVolume * 100)}
+                disabled={!settings.music}
+                onChange={(e) => update({ musicVolume: Number(e.target.value) / 100 })}
+                className="w-40 accent-[var(--color-ink)] disabled:opacity-40"
+              />
+              <span className="num w-10 text-right text-xs text-[var(--color-muted)]">{Math.round(settings.musicVolume * 100)}%</span>
             </div>
           </div>
         </Group>

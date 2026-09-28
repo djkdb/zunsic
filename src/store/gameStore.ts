@@ -22,6 +22,9 @@ import {
 } from '@/engine/gameEngine';
 import { computeFinalStats, evaluateAchievements, type FinalStats } from '@/engine/scoringEngine';
 import { executeOrder, type OrderRequest } from '@/engine/tradingEngine';
+import { playCard } from '@/engine/cardEngine';
+import { xpForRun } from '@/data/levels';
+import type { CardId, RivalId } from '@/domain/types';
 import {
   clearGame,
   DEFAULT_META,
@@ -54,6 +57,9 @@ export interface FinishedRun {
   /** First completed run — there was no previous record to beat. */
   firstRun: boolean;
   newAchievements: AchievementId[];
+  /** Career XP before / gained by this run. */
+  xpBefore: number;
+  xpGained: number;
 }
 
 interface GameStore {
@@ -69,7 +75,8 @@ interface GameStore {
   helpOpen: boolean;
 
   hydrate: () => void;
-  newGame: (difficulty?: DifficultyId, seed?: number) => void;
+  newGame: (difficulty?: DifficultyId, seed?: number, rival?: RivalId) => void;
+  activateCard: (card: CardId) => boolean;
   abandonGame: () => void;
   selectStock: (id: string) => void;
   placeOrder: (order: OrderRequest) => { ok: true; tx: Transaction } | { ok: false; error: TradeError };
@@ -192,12 +199,26 @@ export const useGameStore = create<GameStore>()((set, get) => {
       set({ meta, game, storageOk: storageAvailable(), loadNotice });
     },
 
-    newGame: (difficulty, seed) => {
+    newGame: (difficulty, seed, rival) => {
       const d = difficulty ?? get().meta.settings.difficulty;
-      const game = safe(() => createNewGame({ stocks: STOCKS, difficulty: d, seed }), fail);
+      const game = safe(() => createNewGame({ stocks: STOCKS, difficulty: d, seed, rival }), fail);
       if (!game) return;
-      set({ game, finished: null, selectedStockId: STOCKS[0]?.id ?? '', orderFlash: null });
+      set({ game, finished: null, selectedStockId: STOCKS[0]?.id ?? '', orderFlash: null, toasts: [] });
       get().updateSettings({ difficulty: d });
+    },
+
+    activateCard: (card) => {
+      const g = get().game;
+      if (!g) return false;
+      const r = playCard(g, card, STOCKS);
+      if (!r.ok) {
+        get().pushToast({ kind: 'error', title: '카드 사용 불가', message: r.error });
+        playSfx('blocked');
+        return false;
+      }
+      commit(r.value);
+      playSfx('card');
+      return true;
     },
 
     abandonGame: () => {
@@ -229,8 +250,14 @@ export const useGameStore = create<GameStore>()((set, get) => {
         if (g.phase !== 'DAY_START') return g;
         return transition(g, breakingNewsFor(g).length > 0 ? 'NEWS_EVENT' : 'TRADING');
       });
-      // Quiet day with fresh rumors: make sure the player notices them.
       const g = get().game;
+      // Loss shield paid out overnight.
+      const payout = g?.cardLog.find((l) => l.day === g.day && l.card === 'SHIELD');
+      if (payout) {
+        get().pushToast({ kind: 'success', title: '🛡 손실 방어권 발동', message: payout.text });
+        playSfx('shield');
+      }
+      // Quiet day with fresh rumors: make sure the player notices them.
       if (g?.phase === 'TRADING') {
         const hints = g.news.filter((n) => n.day === g.day && (n.kind === 'RUMOR' || n.kind === 'ANALYST'));
         if (hints[0]) {
@@ -309,11 +336,19 @@ export const useGameStore = create<GameStore>()((set, get) => {
       const newAchievements = g.runAchievements.filter(
         (id) => (meta.achievements[id] ?? 0) >= g.startedAt,
       ) as AchievementId[];
+      const xpGained = g.phase === 'GAME_COMPLETE' ? xpForRun(stats.score.total, stats.rival.won && stats.totalTrades > 0) : 0;
       set({
         toasts: [], // the result screen presents achievements itself
         game: { ...g, phase: 'RESULT' },
-        meta: { ...meta, personalBest },
-        finished: { stats, records, newAchievements, firstRun: g.phase === 'GAME_COMPLETE' && pb.gamesPlayed === 0 },
+        meta: { ...meta, personalBest, xp: meta.xp + xpGained },
+        finished: {
+          stats,
+          records,
+          newAchievements,
+          firstRun: g.phase === 'GAME_COMPLETE' && pb.gamesPlayed === 0,
+          xpBefore: meta.xp,
+          xpGained,
+        },
       });
     },
 

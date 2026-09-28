@@ -243,7 +243,7 @@ test('first-time guide, keyboard flow and upcoming calendar', async ({ page }) =
   await expect(page.getByRole('heading', { name: /30일 버티기/ })).toBeVisible();
 });
 
-test('sound effects play on trades and respect the mute toggle', async ({ page }) => {
+test('sound effects and background music respect the sound menu', async ({ page }) => {
   await page.addInitScript(() => {
     const w = window as unknown as { __osc: number };
     w.__osc = 0;
@@ -266,9 +266,22 @@ test('sound effects play on trades and respect the mute toggle', async ({ page }
   await buyOne();
   expect(await osc()).toBeGreaterThan(before);
 
-  await page.getByRole('button', { name: '효과음 끄기' }).click();
+  // Background music: off in tests by default, turning it on schedules notes, turning it off stops them
+  await page.getByRole('button', { name: '사운드 설정' }).click();
+  await page.getByRole('switch', { name: '배경음악 켜기' }).click();
+  before = await osc();
+  await page.waitForTimeout(1500);
+  expect(await osc()).toBeGreaterThan(before);
+  await page.getByRole('switch', { name: '배경음악 끄기' }).click();
+  await page.waitForTimeout(300);
+  before = await osc();
+  await page.waitForTimeout(800);
+  expect(await osc()).toBe(before);
+
+  await page.getByRole('switch', { name: '효과음 끄기' }).click();
+  await expect(page.getByRole('switch', { name: '효과음 켜기' })).toBeVisible();
+  await page.keyboard.press('Escape');
   before = await osc();
   await buyOne();
   expect(await osc()).toBe(before);
-  await expect(page.getByRole('button', { name: '효과음 켜기' })).toBeVisible();
 });

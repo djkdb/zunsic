@@ -13,6 +13,8 @@ export interface ShareCardData {
   rank: string;
   difficulty: string;
   values: number[];
+  /** e.g. "VS 단타왕 김대리 · 승리" */
+  rival?: string;
 }
 
 const W = 1080;
@@ -131,7 +133,7 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
   // Footer
   ctx.fillStyle = '#f5b83d';
   ctx.font = `800 30px ${mono}`;
-  ctx.fillText(`투자 스타일 · ${data.style}`, pad, H - 96);
+  ctx.fillText(`투자 스타일 · ${data.style}${data.rival ? `   ${data.rival}` : ''}`, pad, H - 96);
   ctx.fillStyle = '#626c7d';
   ctx.font = `500 22px ${mono}`;
   ctx.fillText(`난이도 ${data.difficulty} · 100% 가상 머니 게임 · ${GAME_TITLE}`, pad, H - 56);
@@ -152,6 +154,7 @@ export function shareText(data: ShareCardData): string {
     `수익률 ${formatPct(data.returnPct)}`,
     `거래 ${data.trades}회${data.bestTrade ? ` · 최고의 거래 ${formatKRW(data.bestTrade.pnl, { sign: true })}` : ''}`,
     `점수 ${data.score.toLocaleString('ko-KR')} (${data.rank}등급) · ${data.style}`,
+    ...(data.rival ? [data.rival] : []),
     '(100% 가상 머니 게임)',
   ].join('\n');
 }

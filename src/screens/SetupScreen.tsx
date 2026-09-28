@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { DIFFICULTIES, DIFFICULTY_IDS } from '@/data/difficulties';
-import type { DifficultyId } from '@/domain/types';
+import type { DifficultyId, RivalId } from '@/domain/types';
+import { RIVALS } from '@/data/rivals';
 import { Button } from '@/components/ui/Button';
 import { formatKRW } from '@/lib/format';
 import { useGameStore } from '@/store/gameStore';
@@ -12,12 +13,13 @@ export function SetupScreen() {
   const navigate = useNavigate();
   const [difficulty, setDifficulty] = useState<DifficultyId>(defaultDifficulty);
   const [seedText, setSeedText] = useState('');
+  const [rival, setRival] = useState<RivalId | 'RANDOM'>('RANDOM');
   const seed = seedText.trim() ? Number(seedText.trim()) : undefined;
   const seedValid = seed === undefined || (Number.isInteger(seed) && seed > 0 && seed < 2 ** 31);
 
   const start = () => {
     if (!seedValid) return;
-    newGame(difficulty, seed);
+    newGame(difficulty, seed, rival === 'RANDOM' ? undefined : rival);
     navigate('/play');
   };
 
@@ -59,6 +61,16 @@ export function SetupScreen() {
             );
           })}
         </div>
+        <div>
+          <h2 className="font-mono text-lg font-extrabold">라이벌 선택</h2>
+          <p className="text-[12px] text-[var(--color-dim)]">같은 시장에서 자기 전략대로 투자하는 가상의 AI 라이벌. 30일 뒤 수익률로 승부합니다.</p>
+        </div>
+        <div role="radiogroup" aria-label="라이벌" className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+          <RivalOption id="RANDOM" on={rival === 'RANDOM'} onPick={setRival} emoji="🎲" name="랜덤" style="누가 나올까?" />
+          {RIVALS.map((r) => (
+            <RivalOption key={r.id} id={r.id} on={rival === r.id} onPick={setRival} emoji={r.emoji} name={r.name} style={r.style} title={r.description} />
+          ))}
+        </div>
         <details className="panel p-4">
           <summary className="cursor-pointer font-mono text-xs text-[var(--color-muted)]">고급 · 시장 시드</summary>
           <p className="mt-2 text-[12px] text-[var(--color-dim)]">같은 시드는 같은 시장(가격 흐름·이벤트)을 만듭니다. 비워두면 매번 새로운 시장이 생성됩니다.</p>
@@ -81,5 +93,40 @@ export function SetupScreen() {
         </Button>
       </div>
     </div>
+  );
+}
+
+function RivalOption({
+  id,
+  on,
+  onPick,
+  emoji,
+  name,
+  style,
+  title,
+}: {
+  id: RivalId | 'RANDOM';
+  on: boolean;
+  onPick: (id: RivalId | 'RANDOM') => void;
+  emoji: string;
+  name: string;
+  style: string;
+  title?: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={on}
+      title={title}
+      onClick={() => onPick(id)}
+      className={`rounded-xl border p-3 text-left transition-colors ${on ? 'border-[var(--color-ink)] bg-[var(--color-panel-2)]' : 'border-[var(--color-line)] bg-[var(--color-panel)] hover:border-[var(--color-line-strong)]'}`}
+    >
+      <div className="text-2xl" aria-hidden="true">
+        {emoji}
+      </div>
+      <div className="mt-1 text-[13px] font-bold">{name}</div>
+      <div className="text-[11px] text-[var(--color-dim)]">{style}</div>
+    </button>
   );
 }

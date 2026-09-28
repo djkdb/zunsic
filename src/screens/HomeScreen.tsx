@@ -9,6 +9,8 @@ import { formatKRW, formatPct } from '@/lib/format';
 import { useGameStore } from '@/store/gameStore';
 import { getValuation } from '@/store/selectors';
 import { DIFFICULTY_LABEL } from '@/lib/labels';
+import { levelFor } from '@/data/levels';
+import { SoundMenu } from '@/features/terminal/SoundMenu';
 
 export function HomeScreen() {
   const game = useGameStore((s) => s.game);
@@ -27,7 +29,8 @@ export function HomeScreen() {
   const startNew = () => (inProgress ? setConfirm(true) : navigate('/setup'));
 
   return (
-    <div className="grid-bg min-h-dvh">
+    <div className="grid-bg relative min-h-dvh">
+      <SoundMenu className="absolute top-3 right-3 z-10" />
       <div className="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-10 sm:py-16">
         {loadNotice && (
           <div role="alert" className="flex items-start gap-3 rounded-lg border border-[var(--color-amber)]/50 bg-[var(--color-amber-soft)] px-4 py-3 text-sm text-[var(--color-amber)]">
@@ -73,6 +76,8 @@ export function HomeScreen() {
             </Link>
           )}
         </div>
+
+        <LevelCard xp={meta.xp} />
 
         <section className="grid gap-3 sm:grid-cols-3" aria-label="개인 최고 기록">
           <BestCard label="수익률" value={pb.bestReturn === null ? '—' : formatPct(pb.bestReturn)} tone={pb.bestReturn ?? 0} />
@@ -173,5 +178,30 @@ function BestCard({ label, value, tone }: { label: string; value: string; tone?:
       <div className="label">최고 기록 · {label}</div>
       <div className={`num mt-1 text-xl font-bold ${tone === undefined ? '' : tone >= 0 ? 'text-up' : 'text-down'}`}>{value}</div>
     </div>
+  );
+}
+
+function LevelCard({ xp }: { xp: number }) {
+  const { current, next, progress } = levelFor(xp);
+  return (
+    <section className="panel mx-auto flex w-full max-w-md items-center gap-3 px-4 py-3" aria-label="나의 칭호">
+      <span className="text-3xl" aria-hidden="true">
+        {current.emoji}
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-baseline justify-between">
+          <span className="text-sm font-bold">
+            Lv.{current.level} {current.title}
+          </span>
+          <span className="num text-[11px] text-[var(--color-dim)]">{xp.toLocaleString('ko-KR')} XP</span>
+        </div>
+        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[var(--color-panel-3)]">
+          <div className="h-full rounded-full bg-[var(--color-amber)]" style={{ width: `${Math.round(progress * 100)}%` }} />
+        </div>
+        <div className="mt-1 text-[10px] text-[var(--color-dim)]">
+          {next ? `다음 칭호 “${next.title}”까지 ${(next.xp - xp).toLocaleString('ko-KR')} XP · 게임을 완주하면 점수에 따라 XP 획득` : '최고 칭호 달성!'}
+        </div>
+      </div>
+    </section>
   );
 }

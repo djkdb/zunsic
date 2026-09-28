@@ -12,6 +12,7 @@ import { useTimeScale } from '@/hooks/useMotion';
 import { useGameStore } from '@/store/gameStore';
 import { getTodayHints } from '@/store/selectors';
 import { playSfx } from '@/audio/sfx';
+import { generateChatter } from '@/engine/chatter';
 import { SEVERITY_LABEL } from '@/lib/labels';
 import { computeIndex } from '@/engine/marketEngine';
 
@@ -41,7 +42,8 @@ export function BreakingNewsOverlay() {
     const after = totalValueAt(game, game.prices);
     const indexChange = computeIndex(game.prices, STOCKS) / computeIndex(game.prevPrices, STOCKS) - 1;
     const hasPositions = Object.values(game.holdings).some((h) => h.shares > 0);
-    return { main, others: items.slice(1, 3), affected, before, after, indexChange, hasPositions, hints: getTodayHints(game) };
+    const reaction = generateChatter(game, STOCKS, 6).find((m) => m.tone !== 'rival' && m.tone !== 'neutral');
+    return { main, others: items.slice(1, 3), affected, before, after, indexChange, hasPositions, hints: getTodayHints(game), reaction };
   }, [game]);
 
   useEffect(() => {
@@ -147,6 +149,15 @@ export function BreakingNewsOverlay() {
                   {directionSymbol(data.after - data.before)} {formatPct(data.after / data.before - 1)}
                 </span>
               </div>
+            </div>
+          )}
+
+          {/* 6a. community reaction */}
+          {stage >= 6 && data.reaction && (
+            <div className="mt-3 flex animate-rise-in items-center gap-2 text-[13px]">
+              <span aria-hidden="true">💬</span>
+              <span className={`font-bold ${data.reaction.tone === 'up' ? 'text-up' : 'text-down'}`}>{data.reaction.nick}</span>
+              <span className="text-[var(--color-ink)]">{data.reaction.text}</span>
             </div>
           )}
 

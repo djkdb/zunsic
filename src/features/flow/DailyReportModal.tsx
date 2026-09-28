@@ -8,6 +8,9 @@ import { formatKRW, trendClass } from '@/lib/format';
 import { useGameStore } from '@/store/gameStore';
 import { getUpcomingCalendar } from '@/store/selectors';
 import { UpcomingCalendar } from '@/features/news/UpcomingCalendar';
+import { RIVAL_MAP } from '@/data/rivals';
+import { rivalReturn } from '@/engine/rivalEngine';
+import { formatPct } from '@/lib/format';
 
 export function DailyReportModal() {
   const game = useGameStore((s) => s.game);
@@ -16,9 +19,12 @@ export function DailyReportModal() {
   const updateSettings = useGameStore((s) => s.updateSettings);
   if (!game) return null;
   const upcoming = getUpcomingCalendar(game, 3);
+  const rival = RIVAL_MAP.get(game.rival.id);
+  const rivalRet = rivalReturn(game.rival, game.day, game.startingCash);
   const report = game.reports.find((r) => r.day === game.day);
   const last = game.day >= game.totalDays;
   const news = game.news.filter((n) => report?.newsIds.includes(n.id));
+  const myRet = report ? report.portfolioValue / game.startingCash - 1 : 0;
   const pnl = report ? report.portfolioValue - (game.valueHistory[game.day - 1] ?? game.startingCash) : 0;
 
   return (
@@ -97,6 +103,23 @@ export function DailyReportModal() {
                 <p className="text-[12px] text-[var(--color-dim)]">특별한 뉴스 없이 조용한 하루였다.</p>
               )}
             </div>
+            {rival && (
+              <div className="rounded-lg border border-[var(--color-line)] px-4 py-3">
+                <div className="flex items-center justify-between">
+                  <span className="label">라이벌 · {rival.emoji} {rival.name}</span>
+                  <span className={`num text-sm font-bold ${myRet >= rivalRet ? 'text-up' : 'text-down'}`}>
+                    {Math.abs(myRet - rivalRet) < 0.0005 ? '동률' : myRet >= rivalRet ? `${((myRet - rivalRet) * 100).toFixed(1)}%p 앞섬` : `${((rivalRet - myRet) * 100).toFixed(1)}%p 뒤짐`}
+                  </span>
+                </div>
+                <div className="mt-1 flex items-center justify-between text-[12px] text-[var(--color-muted)]">
+                  <span>
+                    나 <span className={`num ${trendClass(myRet)}`}>{formatPct(myRet)}</span> · 라이벌{' '}
+                    <span className={`num ${trendClass(rivalRet)}`}>{formatPct(rivalRet)}</span>
+                  </span>
+                  {game.rival.lastActionDay === game.day && game.rival.lastAction && <span className="truncate pl-2 text-[11px]">오늘: {game.rival.lastAction}</span>}
+                </div>
+              </div>
+            )}
             <div className="flex items-center justify-between text-[12px]">
               <span className="label">오늘 거래 횟수</span>
               <span className="num font-semibold">{report.tradeCount}회</span>

@@ -245,6 +245,37 @@ export interface DifficultyConfig {
   scoreMultiplier: number;
 }
 
+export type RivalId = 'INDEX_GRANNY' | 'MOMENTUM_KIM' | 'CONTRARIAN_PARK' | 'NEWS_HUNTER';
+
+/** A fictional AI rival trading the same market with a fixed strategy. */
+export interface RivalState {
+  id: RivalId;
+  cash: number;
+  holdings: Record<string, number>;
+  /** Total value at each day's prices. valueHistory[0] = start. */
+  valueHistory: number[];
+  /** What the rival did most recently (for flavor text). */
+  lastAction?: string;
+  lastActionDay?: number;
+}
+
+export type CardId = 'ANALYST' | 'SHIELD' | 'PAPER';
+
+export interface CardUse {
+  usedDay?: number;
+  /** ANALYST: outlook for an upcoming calendar event (right ~80% of the time). */
+  analyst?: { label: string; eventDay: number; outlook: 1 | -1 };
+  /** PAPER: tomorrow's headlines, revealed a day early. */
+  paper?: { day: number; items: { title: string; summary: string; direction: 1 | -1 }[] };
+}
+
+export interface CardLogEntry {
+  day: number;
+  card: CardId;
+  amount: number;
+  text: string;
+}
+
 export interface GameState {
   version: number;
   seed: number;
@@ -284,6 +315,11 @@ export interface GameState {
   startedAt: number;
   finishedAt?: number;
   txCounter: number;
+  rival: RivalState;
+  cards: Record<CardId, CardUse>;
+  /** Cash paid out by chance cards (e.g. loss shield). Part of total P&L. */
+  bonusPnL: number;
+  cardLog: CardLogEntry[];
 }
 
 export interface TradeError {

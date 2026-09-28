@@ -1,8 +1,7 @@
-import { EVENT_TEMPLATE_MAP } from '@/data/events';
 import { STOCKS } from '@/data/stocks';
 import { TICKS_PER_DAY } from '@/domain/constants';
 import type { GameState, NewsItem, PricePoint } from '@/domain/types';
-import { fillTemplate } from '@/lib/format';
+import { upcomingCalendarEvents } from '@/engine/calendar';
 import { visibleNews } from '@/engine/gameEngine';
 import { computeIndex } from '@/engine/marketEngine';
 import { valuePortfolio, type Valuation } from '@/engine/portfolioEngine';
@@ -119,18 +118,11 @@ export interface CalendarEntry {
  * Only the date and subject are known — never the direction.
  */
 export function getUpcomingCalendar(game: GameState, horizon = 3): CalendarEntry[] {
-  const out: CalendarEntry[] = [];
-  const seen = new Set<string>();
-  for (const ev of game.schedule) {
-    if (ev.day <= game.day || ev.day > game.day + horizon) continue;
-    const template = EVENT_TEMPLATE_MAP.get(ev.templateId);
-    if (!template?.calendar) continue;
-    const stock = ev.scope === 'COMPANY' ? STOCKS.find((s) => s.id === ev.targets[0]) : undefined;
-    const label = fillTemplate(template.calendar, { ticker: stock?.ticker ?? '', name: stock?.name ?? '' });
-    const key = `${ev.day}-${label}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push({ key, day: ev.day, inDays: ev.day - game.day, label, stockIds: stock ? [stock.id] : [] });
-  }
-  return out.sort((a, b) => a.day - b.day);
+  return upcomingCalendarEvents(game, STOCKS, horizon).map((c) => ({
+    key: `${c.event.day}-${c.label}`,
+    day: c.event.day,
+    inDays: c.event.day - game.day,
+    label: c.label,
+    stockIds: c.stockIds,
+  }));
 }

@@ -7,6 +7,8 @@ import { computeFinalStats, TRADING_STYLES } from '@/engine/scoringEngine';
 import { PriceChart } from '@/components/chart/PriceChart';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { RiskBadge } from '@/components/ui/Badges';
+import { RIVAL_MAP } from '@/data/rivals';
+import { levelFor } from '@/data/levels';
 import { Button } from '@/components/ui/Button';
 import { directionSymbol, formatKRW, formatPct, trendClass } from '@/lib/format';
 import { DIFFICULTY_LABEL } from '@/lib/labels';
@@ -45,6 +47,9 @@ export function ResultScreen() {
     return null;
   }, [finished, game]);
 
+  const xpBefore = finished?.xpBefore ?? 0;
+  const xpGained = finished?.xpGained ?? 0;
+  const leveledUp = levelFor(xpBefore + xpGained).current.level > levelFor(xpBefore).current.level;
   // Sound track of the reveal: count-up ticks → win/lose sting → record sparkle.
   const outcome = stats ? (stats.returnPct >= 0 ? 'win' : 'lose') : null;
   const isRecord = !!finished && !finished.firstRun && (finished.records.bestReturn || finished.records.bestFinalValue || finished.records.bestScore);
@@ -52,7 +57,8 @@ export function ResultScreen() {
     if (stage === 3) playSfx('count');
     if (stage === 4 && outcome) playSfx(outcome);
     if (stage === 5 && isRecord) playSfx('record');
-  }, [stage, outcome, isRecord]);
+    if (stage === 8 && leveledUp) playSfx('levelUp');
+  }, [stage, outcome, isRecord, leveledUp]);
 
   const valuePoints = useMemo<PricePoint[]>(
     () => (game ? game.valueHistory.slice(0, game.day + 1).map((price, day) => ({ day, tick: 12, price })) : []),
@@ -81,6 +87,7 @@ export function ResultScreen() {
     rank: stats.score.rank,
     difficulty: DIFFICULTY_LABEL[game.difficulty],
     values: valuePoints.map((p) => p.price),
+    rival: `VS ${RIVAL_MAP.get(stats.rival.id)?.name ?? ''} · ${stats.rival.won && stats.totalTrades > 0 ? '승리' : '패배'}`,
   };
 
   const playAgain = () => navigate('/setup');
@@ -161,7 +168,13 @@ export function ResultScreen() {
         {stage >= 6 && (
           <section className="panel animate-rise-in p-4" aria-label="포트폴리오 가치 변화">
             <div className="label mb-2">포트폴리오 평가액 · 30일</div>
-            <PriceChart points={valuePoints} height={200} ariaLabel="포트폴리오 가치 변화" reference={{ value: stats.startingCapital, label: '시작' }} />
+            <PriceChart
+              points={valuePoints}
+              height={200}
+              ariaLabel="포트폴리오 가치 변화"
+              reference={{ value: stats.startingCapital, label: '시작' }}
+              compare={{ values: stats.rival.values, label: `라이벌 ${RIVAL_MAP.get(stats.rival.id)?.name ?? ''}` }}
+            />
           </section>
         )}
 
@@ -193,6 +206,7 @@ export function ResultScreen() {
                 <ScoreRow label="리스크 관리" value={stats.score.riskControl} />
                 <ScoreRow label="꾸준함" value={stats.score.consistency} />
                 <ScoreRow label="거래 효율" value={stats.score.efficiency} />
+                <ScoreRow label="남은 찬스 카드" value={stats.score.cardBonus} />
                 <div className="flex justify-between text-[var(--color-dim)]">
                   <dt>난이도 보정 ({DIFFICULTY_LABEL[game.difficulty]})</dt>
                   <dd>×{stats.score.multiplier.toFixed(1)}</dd>
@@ -201,6 +215,10 @@ export function ResultScreen() {
             </section>
           </div>
         )}
+
+        {stage >= 6 && <RivalDuel stats={stats} />}
+
+        {stage >= 8 && finished && finished.xpGained > 0 && <XpGain before={xpBefore} gained={xpGained} leveledUp={leveledUp} />}
 
         {stage >= 8 && runAchievements.length > 0 && (
           <section className="panel animate-rise-in p-4" aria-label="이번 게임 업적">
@@ -272,5 +290,61 @@ function ScoreRow({ label, value }: { label: string; value: number }) {
         {value.toLocaleString('ko-KR')}
       </dd>
     </div>
+  );
+}
+
+function RivalDuel({ stats }: { stats: ReturnType<typeof computeFinalStats> }) {
+  const def = RIVAL_MAP.get(stats.rival.id);
+  if (!def) return null;
+  const won = stats.rival.won && stats.totalTrades > 0;
+  return (
+    <section
+      className={`panel animate-rise-in p-5 text-center ${won ? 'border-[var(--color-up)]/50' : 'border-[var(--color-down)]/40'}`}
+      aria-label="라이벌 대결 결과"
+    >
+      <div className="label">라이벌 대결</div>
+      <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+        <div>
+          <div className="text-2xl" aria-hidden="true">🙂</div>
+          <div className="text-sm font-bold">나</div>
+          <div className={`num text-lg font-extrabold ${trendClass(stats.returnPct)}`}>{formatPct(stats.returnPct)}</div>
+        </div>
+        <div className="font-mono text-sm font-extrabold text-[var(--color-dim)]">VS</div>
+        <div>
+          <div className="text-2xl" aria-hidden="true">{def.emoji}</div>
+          <div className="text-sm font-bold">{def.name}</div>
+          <div className={`num text-lg font-extrabold ${trendClass(stats.rival.returnPct)}`}>{formatPct(stats.rival.returnPct)}</div>
+        </div>
+      </div>
+      <div className={`mt-3 animate-stamp font-mono text-2xl font-extrabold ${won ? 'text-up' : 'text-down'}`}>{won ? '승리!' : stats.totalTrades === 0 ? '기권' : '패배'}</div>
+      <p className="mt-1 text-[12px] text-[var(--color-muted)]">“{won ? def.behind[0] : def.ahead[0]}”</p>
+    </section>
+  );
+}
+
+function XpGain({ before, gained, leveledUp }: { before: number; gained: number; leveledUp: boolean }) {
+  const after = levelFor(before + gained);
+  return (
+    <section className="panel animate-rise-in p-4" aria-label="경험치">
+      <div className="flex items-center justify-between">
+        <div className="label">경험치</div>
+        <span className="num text-sm font-bold text-[var(--color-amber)]">+{gained.toLocaleString('ko-KR')} XP</span>
+      </div>
+      <div className="mt-2 flex items-center gap-3">
+        <span className="text-2xl" aria-hidden="true">{after.current.emoji}</span>
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-bold">
+            Lv.{after.current.level} {after.current.title}
+            {leveledUp && <span className="ml-2 animate-stamp rounded bg-[var(--color-amber)] px-1.5 py-0.5 text-[10px] text-[#1b1203]">LEVEL UP!</span>}
+          </div>
+          <div className="mt-1 h-2 overflow-hidden rounded-full bg-[var(--color-panel-3)]">
+            <div className="h-full rounded-full bg-[var(--color-amber)] transition-[width] duration-1000" style={{ width: `${Math.round(after.progress * 100)}%` }} />
+          </div>
+          <div className="mt-0.5 text-[10px] text-[var(--color-dim)]">
+            {after.next ? `다음 칭호 “${after.next.title}”까지 ${(after.next.xp - before - gained).toLocaleString('ko-KR')} XP` : '최고 칭호 달성!'}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

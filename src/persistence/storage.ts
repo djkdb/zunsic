@@ -1,5 +1,6 @@
 import { SAVE_VERSION } from '@/domain/constants';
 import type { DifficultyId, GameState } from '@/domain/types';
+import { normalizeGame } from '@/engine/gameEngine';
 
 /**
  * localStorage persistence with validation and safe fallbacks.
@@ -43,6 +44,9 @@ export interface Settings {
   /** Sound effects on/off and volume (0..1). */
   sound: boolean;
   volume: number;
+  /** Background music on/off and volume (0..1). */
+  music: boolean;
+  musicVolume: number;
 }
 
 export interface MetaData {
@@ -50,6 +54,8 @@ export interface MetaData {
   achievements: Record<string, number>; // id → unlockedAt
   personalBest: PersonalBest;
   settings: Settings;
+  /** Career experience across runs (levels / titles). */
+  xp: number;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -60,6 +66,8 @@ export const DEFAULT_SETTINGS: Settings = {
   seenTutorial: false,
   sound: true,
   volume: 0.6,
+  music: true,
+  musicVolume: 0.35,
 };
 
 export const DEFAULT_META: MetaData = {
@@ -67,6 +75,7 @@ export const DEFAULT_META: MetaData = {
   achievements: {},
   personalBest: { bestReturn: null, bestFinalValue: null, bestScore: null, gamesPlayed: 0, recent: [] },
   settings: DEFAULT_SETTINGS,
+  xp: 0,
 };
 
 export type LoadResult<T> = { status: 'ok'; data: T } | { status: 'empty' } | { status: 'corrupt'; reason: string };
@@ -125,6 +134,7 @@ export function loadGame(): LoadResult<GameState> {
   try {
     const parsed: unknown = JSON.parse(raw);
     const reason = validateGameState(parsed);
+    if (!reason) return { status: 'ok', data: normalizeGame(parsed as GameState) };
     if (reason) {
       backupCorrupt(raw);
       return { status: 'corrupt', reason };
@@ -197,7 +207,10 @@ export function loadMeta(): MetaData {
         seenTutorial: settings.seenTutorial === true,
         sound: settings.sound !== false,
         volume: isNum(settings.volume) ? Math.min(1, Math.max(0, settings.volume)) : 0.6,
+        music: settings.music !== false,
+        musicVolume: isNum(settings.musicVolume) ? Math.min(1, Math.max(0, settings.musicVolume)) : 0.35,
       },
+      xp: isNum(parsed.xp) ? Math.max(0, parsed.xp) : 0,
     };
   } catch {
     return structuredClone(DEFAULT_META);

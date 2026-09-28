@@ -4,6 +4,8 @@ import type { GameState, StockDefinition, Transaction } from '@/domain/types';
 import { clamp, mean } from '@/lib/math';
 import { computeIndex } from './marketEngine';
 import { capitalBase } from './portfolioEngine';
+import { UNUSED_CARD_BONUS, unusedCards } from './cardEngine';
+import { rivalReturn } from './rivalEngine';
 
 /**
  * Scoring engine — final metrics, score, rank, trading style and achievements.
@@ -102,6 +104,7 @@ export interface FinalStats {
   positiveDays: number;
   style: StyleResult;
   score: ScoreBreakdown;
+  rival: { id: GameState['rival']['id']; returnPct: number; finalValue: number; won: boolean; values: number[] };
 }
 
 export interface ScoreBreakdown {
@@ -109,6 +112,7 @@ export interface ScoreBreakdown {
   riskControl: number;
   consistency: number;
   efficiency: number;
+  cardBonus: number;
   multiplier: number;
   total: number;
   rank: 'S' | 'A' | 'B' | 'C' | 'D';
@@ -173,8 +177,10 @@ export function computeFinalStats(state: GameState, stocks: readonly StockDefini
     winRate,
     totalTrades,
     sellCount: sells.length,
+    unusedCards: unusedCards(state),
     multiplier: DIFFICULTIES[state.difficulty].scoreMultiplier,
   });
+  const rivalRet = rivalReturn(state.rival, state.day, state.startingCash);
 
   return {
     startingCapital: base,
@@ -196,6 +202,13 @@ export function computeFinalStats(state: GameState, stocks: readonly StockDefini
     positiveDays,
     style: classifyStyle(state),
     score,
+    rival: {
+      id: state.rival.id,
+      returnPct: rivalRet,
+      finalValue: state.rival.valueHistory[state.day] ?? state.startingCash,
+      won: returnPct > rivalRet,
+      values: state.rival.valueHistory.slice(0, state.day + 1),
+    },
   };
 }
 
@@ -206,6 +219,7 @@ export function computeScore(input: {
   winRate: number;
   totalTrades: number;
   sellCount: number;
+  unusedCards?: number;
   multiplier: number;
 }): ScoreBreakdown {
   const returnPts = Math.round(clamp(5000 + input.returnPct * 11000, 0, 16000));
@@ -213,11 +227,12 @@ export function computeScore(input: {
   const consistency = Math.round(input.positiveRatio * 1000);
   const overtrading = Math.max(0, input.totalTrades - 60) * 15;
   const efficiency = Math.round((input.sellCount >= 3 ? input.winRate * 800 : 0) - overtrading);
-  const raw = returnPts + riskControl + consistency + efficiency;
+  const cardBonus = (input.unusedCards ?? 0) * UNUSED_CARD_BONUS;
+  const raw = returnPts + riskControl + consistency + efficiency + cardBonus;
   const total = Math.max(0, Math.round(raw * input.multiplier));
   const rank: ScoreBreakdown['rank'] =
     total >= 9500 ? 'S' : total >= 8000 ? 'A' : total >= 6500 ? 'B' : total >= 5000 ? 'C' : 'D';
-  return { returnPts, riskControl, consistency, efficiency, multiplier: input.multiplier, total, rank };
+  return { returnPts, riskControl, consistency, efficiency, cardBonus, multiplier: input.multiplier, total, rank };
 }
 
 // ───────────────────────── Achievements ─────────────────────────
@@ -255,6 +270,7 @@ export function evaluateAchievements(state: GameState, stocks: readonly StockDef
     if (sells.length >= 3 && sells.every((t) => (t.realizedPnL ?? 0) >= 0) && finalReturn > 0) out.add('PERFECT_RUN');
     const stats = computeFinalStats(state, stocks);
     if (trades.length > 0 && stats.returnPct - stats.indexReturn >= 0.05) out.add('MARKET_BEATER');
+    if (trades.length > 0 && stats.rival.won) out.add('RIVAL_BEATEN');
   }
 
   return ACHIEVEMENTS.map((a) => a.id).filter((id) => out.has(id));
