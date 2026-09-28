@@ -30,6 +30,28 @@ npm run preview      # 빌드 결과를 로컬에서 서빙
 
 빌드 결과물은 상대 경로(`base: './'`)와 HashRouter를 쓰기 때문에 어떤 정적 호스팅에도 그대로 올릴 수 있습니다.
 
+## Cloudflare Pages 배포
+
+정적 사이트(Vite 빌드 결과물 `dist/`)라 서버 없이 Cloudflare Pages에 그대로 올릴 수 있습니다. HashRouter와 상대 경로를 쓰기 때문에 SPA 리다이렉트 설정도 필요 없습니다.
+
+**GitHub 연동 (추천, 푸시하면 자동 배포)**
+1. Cloudflare 대시보드 → Workers & Pages → Create → Pages → Connect to Git → 이 저장소를 선택합니다.
+2. 빌드 설정:
+   - Framework preset: `Vite` (또는 None)
+   - Build command: `npm run build`
+   - Build output directory: `dist`
+   - Production branch: 배포할 브랜치
+3. Node 버전은 저장소의 `.node-version`(22)을 자동으로 읽습니다. 안 되면 환경 변수 `NODE_VERSION=22`를 추가합니다.
+
+**CLI로 직접 업로드**
+```bash
+npm run build
+npx wrangler login
+npx wrangler pages deploy dist --project-name market30
+```
+
+디버그 패널은 production 빌드에서 자동으로 숨겨집니다. 배포본에서도 쓰려면 환경 변수 `VITE_ENABLE_DEBUG=true`를 넣고 빌드합니다.
+
 ## 언어
 
 UI는 한국어 사용자 기준으로 만들었습니다. 버튼, 라벨, 뉴스 헤드라인, 시장 상태, 위험도, 업적, 결과 화면이 모두 한국어입니다. 브랜드명(MARKET//30), 가상 기업명, 티커(NOVA, QCOR…)는 영어 그대로 둡니다. 속보나 주문 체결처럼 연출이 강한 장면은 한국어를 크게 쓰고 영어 원문(BREAKING NEWS, ORDER EXECUTED)을 작게 붙였습니다. enum 값을 한국어로 바꾸는 표시용 라벨은 `src/lib/labels.ts`에 모아 두었습니다.
