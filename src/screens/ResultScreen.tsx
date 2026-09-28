@@ -1,0 +1,259 @@
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Navigate, useNavigate } from 'react-router';
+import { ACHIEVEMENT_MAP } from '@/data/achievements';
+import { getStock, STOCKS } from '@/data/stocks';
+import type { PricePoint } from '@/domain/types';
+import { computeFinalStats, TRADING_STYLES } from '@/engine/scoringEngine';
+import { PriceChart } from '@/components/chart/PriceChart';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
+import { RiskBadge } from '@/components/ui/Badges';
+import { Button } from '@/components/ui/Button';
+import { directionSymbol, formatKRW, formatPct, trendClass } from '@/lib/format';
+import { useTimeScale } from '@/hooks/useMotion';
+import { useDelayedValue } from '@/hooks/useDelayedValue';
+import { useGameStore } from '@/store/gameStore';
+import { ShareDialog } from '@/features/share/ShareDialog';
+import type { ShareCardData } from '@/features/share/shareCard';
+
+/** Stages of the sequential reveal. */
+const STAGE_TIMES = [0, 500, 1200, 2600, 3300, 3900, 4500, 5100];
+
+export function ResultScreen() {
+  const game = useGameStore((s) => s.game);
+  const finished = useGameStore((s) => s.finished);
+  const showResult = useGameStore((s) => s.showResult);
+  const navigate = useNavigate();
+  const scale = useTimeScale();
+  const [stage, setStage] = useState(0);
+  const [share, setShare] = useState(false);
+
+  // Recover when landing directly (e.g. after a reload) on a completed game.
+  useEffect(() => {
+    if (game?.phase === 'GAME_COMPLETE') showResult();
+  }, [game?.phase, showResult]);
+
+  useEffect(() => {
+    const timers = STAGE_TIMES.map((t, i) => setTimeout(() => setStage(i + 1), t * scale));
+    return () => timers.forEach(clearTimeout);
+  }, [scale]);
+
+  const stats = useMemo(() => {
+    if (finished) return finished.stats;
+    if (game && (game.phase === 'RESULT' || game.phase === 'GAME_COMPLETE')) return computeFinalStats(game, STOCKS);
+    return null;
+  }, [finished, game]);
+
+  const valuePoints = useMemo<PricePoint[]>(
+    () => (game ? game.valueHistory.slice(0, game.day + 1).map((price, day) => ({ day, tick: 12, price })) : []),
+    [game],
+  );
+
+  if (!game || !stats) return <Navigate to="/" replace />;
+  if (game.phase !== 'RESULT' && game.phase !== 'GAME_COMPLETE') return <Navigate to="/play" replace />;
+
+  const records = finished?.records;
+  const anyRecord = !!records && (records.bestReturn || records.bestFinalValue || records.bestScore);
+  const style = TRADING_STYLES[stats.style.primary];
+  const secondary = stats.style.secondary ? TRADING_STYLES[stats.style.secondary] : null;
+  const runAchievements = game.runAchievements.map((id) => ACHIEVEMENT_MAP.get(id)).filter((a) => !!a);
+  const newIds = new Set(finished?.newAchievements ?? []);
+
+  const shareData: ShareCardData = {
+    finalValue: stats.finalValue,
+    returnPct: stats.returnPct,
+    trades: stats.totalTrades,
+    bestTrade: stats.bestTrade && stats.bestTrade.pnl > 0 ? { ticker: stats.bestTrade.ticker, pnl: stats.bestTrade.pnl } : null,
+    maxDrawdown: stats.drawdown.maxDrawdown,
+    style: style.label,
+    score: stats.score.total,
+    rank: stats.score.rank,
+    difficulty: game.difficulty,
+    values: valuePoints.map((p) => p.price),
+  };
+
+  const playAgain = () => navigate('/setup');
+  const revealAll = () => setStage(STAGE_TIMES.length);
+
+  return (
+    <div className="grid-bg min-h-dvh">
+      <main className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8 sm:py-12">
+        {/* 1. header */}
+        <header className="text-center">
+          <div className="label animate-rise-in">{game.totalDays} DAYS COMPLETE</div>
+          <h1 className="mt-2 animate-stamp font-mono text-4xl font-extrabold tracking-[0.12em] sm:text-6xl">MARKET CLOSED</h1>
+          <div className="mt-1 font-mono text-sm tracking-[0.3em] text-[var(--color-muted)]">FINAL RESULT</div>
+        </header>
+
+        {/* 2-4. capital → final → return */}
+        <section className="panel p-5 text-center sm:p-8" aria-label="Final result">
+          {stage >= 2 && (
+            <div className="animate-rise-in">
+              <div className="label">STARTING CAPITAL</div>
+              <div className="num text-xl text-[var(--color-muted)] sm:text-2xl">{formatKRW(stats.startingCapital)}</div>
+            </div>
+          )}
+          {stage >= 3 && (
+            <div className="mt-5 animate-rise-in">
+              <div className="label">FINAL VALUE</div>
+              <FinalValueCounter from={stats.startingCapital} to={stats.finalValue} />
+            </div>
+          )}
+          {stage >= 4 && (
+            <div className={`mt-3 animate-stamp font-mono text-4xl font-extrabold sm:text-5xl ${trendClass(stats.returnPct)}`}>
+              {directionSymbol(stats.returnPct)} {formatPct(stats.returnPct)}
+              <div className="num mt-1 text-sm font-semibold">{formatKRW(stats.totalPnL, { sign: true })}</div>
+            </div>
+          )}
+          {stage >= 5 && anyRecord && (
+            <div className="mt-4 inline-flex animate-stamp items-center gap-2 rounded-md border-2 border-[var(--color-amber)] px-4 py-1.5 font-mono text-lg font-extrabold tracking-[0.2em] text-[var(--color-amber)]">
+              ★ NEW RECORD
+            </div>
+          )}
+          {stage >= 5 && (
+            <div className="mt-4 font-mono text-[12px] text-[var(--color-dim)]">
+              MARKET INDEX <span className={trendClass(stats.indexReturn)}>{formatPct(stats.indexReturn)}</span> ·{' '}
+              {stats.returnPct >= stats.indexReturn ? 'YOU BEAT THE MARKET' : 'THE MARKET BEAT YOU'}
+            </div>
+          )}
+        </section>
+
+        {/* 5. stats */}
+        {stage >= 6 && (
+          <section className="grid animate-rise-in grid-cols-2 gap-px overflow-hidden rounded-[10px] border border-[var(--color-line)] bg-[var(--color-line)] sm:grid-cols-4" aria-label="Performance">
+            <StatCell label="MAX DRAWDOWN" value={`-${(stats.drawdown.maxDrawdown * 100).toFixed(2)}%`} tone={-1} sub={stats.drawdown.maxDrawdown > 0 ? `${formatKRW(stats.drawdown.peak)} → ${formatKRW(stats.drawdown.trough)}` : 'NO DRAWDOWN'} />
+            <StatCell
+              label="BEST TRADE"
+              value={stats.bestTrade ? formatKRW(stats.bestTrade.pnl, { sign: true }) : '—'}
+              tone={stats.bestTrade?.pnl}
+              sub={stats.bestTrade ? `${getStock(stats.bestTrade.stockId)?.ticker} · DAY ${stats.bestTrade.day}` : undefined}
+            />
+            <StatCell
+              label="WORST TRADE"
+              value={stats.worstTrade ? formatKRW(stats.worstTrade.pnl, { sign: true }) : '—'}
+              tone={stats.worstTrade?.pnl}
+              sub={stats.worstTrade ? `${getStock(stats.worstTrade.stockId)?.ticker} · DAY ${stats.worstTrade.day}` : undefined}
+            />
+            <StatCell label="WIN RATE" value={stats.sellCount ? `${(stats.winRate * 100).toFixed(0)}%` : '—'} sub={`${stats.sellCount} CLOSED TRADES`} />
+            <StatCell label="TOTAL TRADES" value={String(stats.totalTrades)} />
+            <StatCell label="BEST DAY" value={stats.bestDay ? formatKRW(stats.bestDay.change, { sign: true }) : '—'} tone={stats.bestDay?.change} sub={stats.bestDay ? `DAY ${stats.bestDay.day} · ${formatPct(stats.bestDay.pct)}` : undefined} />
+            <StatCell label="WORST DAY" value={stats.worstDay ? formatKRW(stats.worstDay.change, { sign: true }) : '—'} tone={stats.worstDay?.change} sub={stats.worstDay ? `DAY ${stats.worstDay.day} · ${formatPct(stats.worstDay.pct)}` : undefined} />
+            <StatCell label="PORTFOLIO RISK" value={<RiskBadge level={stats.riskLevel} />} sub={`AVG ${stats.avgRiskScore.toFixed(0)}/100`} />
+          </section>
+        )}
+
+        {stage >= 6 && (
+          <section className="panel animate-rise-in p-4" aria-label="Portfolio value over time">
+            <div className="label mb-2">PORTFOLIO VALUE · 30 DAYS</div>
+            <PriceChart points={valuePoints} height={200} ariaLabel="포트폴리오 가치 변화" reference={{ value: stats.startingCapital, label: 'START' }} />
+          </section>
+        )}
+
+        {/* 6. style + score */}
+        {stage >= 7 && (
+          <div className="grid animate-rise-in gap-4 sm:grid-cols-2">
+            <section className="panel p-5" aria-label="Trading style">
+              <div className="label">YOUR TRADING STYLE</div>
+              <div className="mt-2 font-mono text-2xl font-extrabold text-[var(--color-amber)]">{style.label}</div>
+              <p className="mt-2 text-sm text-[var(--color-muted)]">{style.description}</p>
+              {secondary && <p className="mt-2 font-mono text-[11px] text-[var(--color-dim)]">SECONDARY TRAIT · {secondary.label}</p>}
+              <dl className="mt-3 grid grid-cols-2 gap-1 font-mono text-[10px] text-[var(--color-dim)]">
+                <div>AVG HOLD {stats.style.metrics.avgHoldingDays.toFixed(1)}d</div>
+                <div>HIGH-RISK {(stats.style.metrics.highRiskShare * 100).toFixed(0)}%</div>
+                <div>AVG STOCKS {stats.style.metrics.avgDistinct.toFixed(1)}</div>
+                <div>CASH {(stats.style.metrics.cashRatio * 100).toFixed(0)}%</div>
+              </dl>
+            </section>
+            <section className="panel p-5" aria-label="Score">
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="label">SCORE</div>
+                  <AnimatedNumber value={stats.score.total} format={(v) => Math.round(v).toLocaleString('ko-KR')} className="text-4xl font-extrabold" flash={false} duration={1000} />
+                </div>
+                <div className="grid h-16 w-16 place-items-center rounded-xl border-2 border-[var(--color-ink)] font-mono text-3xl font-extrabold">{stats.score.rank}</div>
+              </div>
+              <dl className="mt-3 space-y-1 font-mono text-[11px]">
+                <ScoreRow label="RETURN" value={stats.score.returnPts} />
+                <ScoreRow label="RISK CONTROL" value={stats.score.riskControl} />
+                <ScoreRow label="CONSISTENCY" value={stats.score.consistency} />
+                <ScoreRow label="TRADING EFFICIENCY" value={stats.score.efficiency} />
+                <div className="flex justify-between text-[var(--color-dim)]">
+                  <dt>DIFFICULTY ({game.difficulty})</dt>
+                  <dd>×{stats.score.multiplier.toFixed(1)}</dd>
+                </div>
+              </dl>
+            </section>
+          </div>
+        )}
+
+        {stage >= 8 && runAchievements.length > 0 && (
+          <section className="panel animate-rise-in p-4" aria-label="Achievements this run">
+            <div className="label mb-2">ACHIEVEMENTS THIS RUN</div>
+            <ul className="flex flex-wrap gap-2">
+              {runAchievements.map((a) => (
+                <li key={a.id} className="rounded-md border border-[var(--color-amber)]/50 bg-[var(--color-amber-soft)] px-2.5 py-1.5 font-mono text-[11px] font-bold text-[var(--color-amber)]" title={a.description}>
+                  {a.icon} {a.title}
+                  {newIds.has(a.id) && <span className="ml-1.5 rounded bg-[var(--color-amber)] px-1 text-[9px] text-[#1b1203]">NEW</span>}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <div className="sticky bottom-3 z-10 grid grid-cols-3 gap-2 rounded-xl border border-[var(--color-line)] bg-[var(--color-bg)]/90 p-2 backdrop-blur">
+          <Button variant="primary" size="lg" onClick={playAgain}>
+            PLAY AGAIN
+          </Button>
+          <Button variant="amber" size="lg" onClick={() => setShare(true)}>
+            SHARE
+          </Button>
+          <Button variant="outline" size="lg" onClick={() => navigate('/')}>
+            HOME
+          </Button>
+        </div>
+        {stage < STAGE_TIMES.length && (
+          <button type="button" onClick={revealAll} className="mx-auto font-mono text-[11px] text-[var(--color-dim)] underline">
+            SHOW ALL
+          </button>
+        )}
+        <p className="text-center text-[11px] text-[var(--color-dim)]">SEED {game.seed} · 같은 시드로 같은 시장을 다시 플레이할 수 있습니다 (SETUP › ADVANCED).</p>
+      </main>
+      <ShareDialog open={share} onClose={() => setShare(false)} data={shareData} />
+    </div>
+  );
+}
+
+/** Counts from the starting capital up (or down) to the final value. */
+function FinalValueCounter({ from, to }: { from: number; to: number }) {
+  const shown = useDelayedValue(from, to, 150);
+  return (
+    <>
+      <AnimatedNumber value={shown} format={formatKRW} duration={1300} flash={false} className="block text-5xl font-extrabold tracking-tight sm:text-7xl" />
+      <span className="sr-only" aria-live="polite">
+        최종 자산 {formatKRW(to)}, 시작 자산 {formatKRW(from)}
+      </span>
+    </>
+  );
+}
+
+function StatCell({ label, value, sub, tone }: { label: string; value: ReactNode; sub?: string; tone?: number }) {
+  const color = tone === undefined || tone === 0 ? '' : tone > 0 ? 'text-up' : 'text-down';
+  return (
+    <div className="bg-[var(--color-panel)] px-3 py-3">
+      <div className="label !text-[10px]">{label}</div>
+      <div className={`num mt-1 text-base font-bold ${color}`}>{value}</div>
+      {sub && <div className="num mt-0.5 text-[10px] text-[var(--color-dim)]">{sub}</div>}
+    </div>
+  );
+}
+
+function ScoreRow({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex justify-between">
+      <dt className="text-[var(--color-dim)]">{label}</dt>
+      <dd className={value < 0 ? 'text-down' : 'text-[var(--color-muted)]'}>
+        {value >= 0 ? '+' : ''}
+        {value.toLocaleString('ko-KR')}
+      </dd>
+    </div>
+  );
+}

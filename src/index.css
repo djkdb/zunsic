@@ -1,0 +1,180 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/600.css';
+@import '@fontsource/jetbrains-mono/800.css';
+
+/* ───────────── Design tokens ───────────── */
+@theme {
+  --color-bg: #0a0d12;
+  --color-panel: #10141b;
+  --color-panel-2: #151a23;
+  --color-panel-3: #1b212c;
+  --color-line: #212834;
+  --color-line-strong: #2e3746;
+  --color-ink: #e8eaed;
+  --color-muted: #9aa3b2;
+  --color-dim: #626c7d;
+  --color-up: #34c77b;
+  --color-up-soft: #34c77b1f;
+  --color-down: #ef5a5a;
+  --color-down-soft: #ef5a5a1f;
+  --color-amber: #f5b83d;
+  --color-amber-soft: #f5b83d1f;
+  --color-info: #5b9dff;
+  --color-info-soft: #5b9dff1f;
+  --color-flat: #9aa3b2;
+
+  --font-sans: 'Inter Variable', 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'Apple SD Gothic Neo', 'Malgun Gothic', monospace;
+
+  --animate-flash-up: flash-up 900ms ease-out;
+  --animate-flash-down: flash-down 900ms ease-out;
+  --animate-fade-in: fade-in 240ms ease-out both;
+  --animate-rise-in: rise-in 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-stamp: stamp 700ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  --animate-pulse-amber: pulse-amber 1.2s ease-in-out infinite;
+  --animate-ticker: ticker 40s linear infinite;
+  --animate-shake: shake 480ms ease-in-out;
+  --animate-scan: scan 2.4s linear infinite;
+}
+
+@keyframes flash-up {
+  0% { background-color: color-mix(in srgb, var(--color-up) 35%, transparent); }
+  100% { background-color: transparent; }
+}
+@keyframes flash-down {
+  0% { background-color: color-mix(in srgb, var(--color-down) 35%, transparent); }
+  100% { background-color: transparent; }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes stamp {
+  0% { opacity: 0; transform: scale(1.6) rotate(-4deg); }
+  60% { opacity: 1; transform: scale(0.96) rotate(-2deg); }
+  100% { opacity: 1; transform: scale(1) rotate(-2deg); }
+}
+@keyframes pulse-amber {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-amber) 45%, transparent); }
+  50% { box-shadow: 0 0 0 6px transparent; }
+}
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(2px); }
+}
+@keyframes scan {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(100%); }
+}
+
+/* ───────────── Base ───────────── */
+@layer base {
+  html {
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+  #root {
+    min-height: 100dvh;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-info);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type='number'] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--color-info) 40%, transparent);
+  }
+}
+
+/* ───────────── Utilities ───────────── */
+@utility num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+@utility label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-dim);
+}
+@utility panel {
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+}
+@utility text-up {
+  color: var(--color-up);
+}
+@utility text-down {
+  color: var(--color-down);
+}
+@utility text-flat {
+  color: var(--color-flat);
+}
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+@utility safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 0px);
+}
+
+.grid-bg {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--color-line) 55%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-line) 55%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Reduced motion: honour OS setting unless the player forces motion on; or force off. */
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-motion='on']) *,
+  html:not([data-motion='on']) *::before,
+  html:not([data-motion='on']) *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+html[data-motion='off'] *,
+html[data-motion='off'] *::before,
+html[data-motion='off'] *::after {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
+}
