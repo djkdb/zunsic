@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>TEAZR Writer Acquisition Plan</title>
+<style>
+@page { size: A4; margin: 15mm 15mm 16mm 15mm;
+  @bottom-left { content: "TEAZR · 3주차 Writer Acquisition Plan"; font-size: 7.5pt; color: #9a9aa6; font-family: "Pretendard","Noto Sans CJK KR",sans-serif; }
+  @bottom-right { content: counter(page) " / " counter(pages); font-size: 7.5pt; color: #9a9aa6; font-family: "Pretendard","Noto Sans CJK KR",sans-serif; } }
+@page :first { @bottom-left { content: none; } @bottom-right { content: none; } }
+* { box-sizing: border-box; }
+:root { --acc:#6d3cf5; --acc-d:#2a1470; --acc2:#ede7ff; --acc3:#f7f5ff; --pink:#ff4f7b; --pink2:#fff0f4; --gold:#ffd84d;
+  --ink:#1c1b26; --ink2:#5b5b6b; --ink3:#8b8b99; --line:#e6e3f0; --ok:#12a672; --ok2:#e9f8f1; --warn:#c2410c; --warn2:#fff4ee; }
+body { font-family: "Pretendard","Noto Sans CJK KR",sans-serif; color: var(--ink); font-size: 9.5pt; line-height: 1.6; margin: 0; background:#fff;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact; word-break: keep-all; }
+b, strong { font-weight: 700; }
+p { margin: 0; }
+
+/* ---------- cover ---------- */
+.cover { height: 263mm; display: flex; flex-direction: column; break-after: page; }
+.hero { flex: 1; background: radial-gradient(120% 90% at 100% 0%, #8b63ff 0%, transparent 55%), linear-gradient(150deg,#160a3d 0%,#2a1470 45%,#5a2fe0 100%);
+  color:#fff; border-radius: 16px; padding: 34px 32px 28px; display:flex; flex-direction:column; position:relative; overflow:hidden; }
+.hero::after { content:"썰"; position:absolute; right:-18px; bottom:-70px; font-size:260pt; font-weight:900; color:rgba(255,255,255,.05); line-height:1; }
+.hero .tag { font-size: 8.5pt; letter-spacing: .16em; font-weight: 700; background: rgba(255,255,255,.14); padding: 4px 11px; border-radius: 99px; align-self:flex-start; }
+.hero h1 { margin: 22px 0 10px; font-size: 34pt; font-weight: 800; line-height: 1.12; letter-spacing: -.02em; }
+.hero h1 span { color: var(--gold); }
+.hero .sub { font-size: 12pt; opacity: .92; max-width: 125mm; }
+.hero .thesis { margin-top: auto; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); border-left: 4px solid var(--gold);
+  border-radius: 10px; padding: 14px 18px; font-size: 11.5pt; font-weight: 600; line-height: 1.55; position:relative; z-index:1; }
+.hero .thesis small { display:block; color: var(--gold); font-size: 8pt; letter-spacing: .14em; font-weight: 800; margin-bottom: 4px; }
+.kpis { display:grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin: 12px 0; }
+.kpis div { border:1px solid var(--line); border-radius: 12px; padding: 12px 12px 10px; }
+.kpis b { display:block; font-size: 22pt; font-weight: 800; color: var(--acc); line-height: 1.1; letter-spacing:-.02em; }
+.kpis b small { font-size: 10pt; font-weight: 700; margin-left: 2px; }
+.kpis span { font-size: 8.5pt; color: var(--ink2); }
+.kpis div.main { background: var(--acc); border-color: var(--acc); }
+.kpis div.main b, .kpis div.main span { color:#fff; }
+.toc { display:grid; grid-template-columns: repeat(5,1fr); gap: 6px; }
+.toc div { background: var(--acc3); border-radius: 10px; padding: 10px 10px 9px; }
+.toc i { font-style: normal; font-size: 7.5pt; color: var(--ink3); font-weight: 700; }
+.toc b { display:block; color: var(--acc); font-size: 10.5pt; letter-spacing:.04em; }
+.toc span { font-size: 8pt; color: var(--ink2); line-height: 1.4; display:block; margin-top: 2px; }
+
+/* ---------- section ---------- */
+section { margin-bottom: 16px; }
+.pb { break-before: page; }
+h2 { display:flex; align-items:center; gap:9px; font-size: 14pt; font-weight: 800; margin: 0 0 4px; break-after: avoid; letter-spacing:-.01em; }
+h2 .n { background: var(--acc); color:#fff; font-size: 9pt; width: 22px; height: 22px; border-radius: 6px; display:inline-flex; align-items:center; justify-content:center; }
+h2 .k { color: var(--acc); }
+h2 .s { font-size: 9.5pt; color: var(--ink2); font-weight: 500; }
+.lead { color: var(--ink2); font-size: 9.3pt; margin: 0 0 10px 31px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+h4 { font-size: 10pt; font-weight: 800; margin: 12px 0 6px; display:flex; align-items:center; gap:6px; break-after: avoid; }
+h4::before { content:""; width:4px; height: 12px; background: var(--acc); border-radius: 2px; }
+
+.card { border: 1px solid var(--line); border-radius: 10px; padding: 11px 14px; break-inside: avoid; background:#fff; }
+.card h3 { margin: 0 0 4px; font-size: 10.5pt; font-weight: 800; }
+.stack > * + * { margin-top: 8px; }
+.grid2 { display:grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.grid3 { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.rank { display:inline-block; font-size: 7.8pt; font-weight: 800; border-radius: 4px; padding: 1px 7px; margin-right: 6px; color:#fff; vertical-align: 1px; }
+.r1 { background:#6d3cf5; } .r2 { background:#8f6cf7; } .r3 { background:#b4a0f9; }
+ul { margin: 3px 0 0; padding-left: 15px; } li { margin: 1px 0; }
+.muted { color: var(--ink2); } .small { font-size: 8.5pt; }
+.chips { margin-top: 6px; display:flex; flex-wrap:wrap; gap: 4px; }
+.chip { background: var(--acc2); color: #4a22c4; border-radius: 99px; padding: 1px 9px; font-size: 8.3pt; font-weight: 600; }
+.chip.pink { background: var(--pink2); color: #c01d4b; }
+.chip.gray { background: #f1f1f5; color: var(--ink2); }
+.hl { background: linear-gradient(transparent 58%, #ffe7a3 58%); font-weight: 700; }
+
+/* profile tiers */
+.tier { display:grid; grid-template-columns: 1.35fr 1fr 1fr; gap: 8px; }
+.tier .card.top { border: 2px solid var(--acc); background: var(--acc3); }
+.meter { display:flex; gap:3px; margin-top: 7px; }
+.meter i { flex:1; height:5px; border-radius: 3px; background: #e2dcf8; }
+.meter i.on { background: var(--acc); }
+.meter-l { font-size: 7.5pt; color: var(--ink3); margin-top: 2px; }
+
+/* checklist */
+table { width:100%; border-collapse: collapse; break-inside: avoid; }
+th { background: var(--acc3); color: var(--acc-d); font-size: 8.5pt; font-weight: 800; text-align:left; padding: 6px 9px; border-bottom: 1px solid var(--line); }
+td { padding: 6px 9px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 9pt; }
+tr:last-child td { border-bottom: 0; }
+.tbl { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; break-inside: avoid; }
+td.c, th.c { text-align:center; }
+.pt { display:inline-block; min-width: 24px; text-align:center; background: var(--acc); color:#fff; border-radius: 4px; font-weight: 800; font-size: 8pt; padding: 0 5px; }
+.pass { background: var(--ok2); color: var(--ok); font-weight: 700; border-radius: 6px; padding: 7px 11px; font-size: 8.8pt; margin-top: 6px; break-inside: avoid; }
+
+/* channel bar */
+.alloc { display:flex; height: 30px; border-radius: 8px; overflow:hidden; margin: 4px 0 8px; font-size: 8.5pt; font-weight: 700; color:#fff; }
+.alloc div { display:flex; align-items:center; justify-content:center; }
+
+/* HOW */
+.warn { background: var(--warn2); border: 1px solid #ffd7c2; border-radius: 8px; padding: 8px 12px; color: var(--warn); margin-bottom: 10px; break-inside: avoid; }
+.warn b { color: #9a3412; }
+.timeline { position: relative; margin-left: 8px; padding-left: 20px; border-left: 2px dashed #cfc3fb; }
+.tl { position: relative; margin-bottom: 10px; break-inside: avoid; }
+.tl::before { content: attr(data-s); position: absolute; left: -32px; top: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--acc); color:#fff;
+  font-size: 8.5pt; font-weight: 800; display:flex; align-items:center; justify-content:center; box-shadow: 0 0 0 3px #fff; }
+.tl .hd { display:flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+.tl .hd b { font-size: 10.3pt; }
+.tl .hd span { font-size: 8pt; color: var(--acc); font-weight: 700; background: var(--acc2); border-radius: 4px; padding: 0 6px; }
+.dm { background: #f6f6f9; border-radius: 4px 14px 14px 14px; padding: 10px 13px; font-size: 9.2pt; line-height: 1.65; position: relative; }
+.dm.me { background: var(--acc3); border: 1px solid #e0d7ff; }
+.dm .tip { display:block; margin-top: 6px; padding-top: 6px; border-top: 1px dashed #d6ccfb; font-size: 8.3pt; color: var(--ink2); }
+.vs { display:grid; grid-template-columns: 1fr 26px 1.6fr; align-items:center; gap: 6px; margin-top: 10px; break-inside: avoid; }
+.vs div { border-radius: 8px; padding: 9px; text-align:center; font-weight: 700; font-size: 9.5pt; }
+.vs .bad { background:#f1f1f4; color:#999; text-decoration: line-through; }
+.vs .arrow { color: var(--acc); font-size: 14pt; padding: 0; }
+.vs .good { background: var(--acc); color:#fff; }
+.faq td:first-child { width: 36%; font-weight: 700; }
+.faq td:first-child::before { content: "Q "; color: var(--pink); font-weight: 800; }
+
+/* WHY */
+.benefit { display:flex; gap: 10px; }
+.benefit .ic { width: 34px; height: 34px; flex: none; border-radius: 9px; background: var(--acc2); display:flex; align-items:center; justify-content:center; font-size: 15pt; }
+.benefit.star { border: 2px solid var(--pink); background: var(--pink2); }
+.benefit.star .ic { background: #ffd9e3; }
+.reward { display:grid; grid-template-columns: 1fr 22px 1fr 22px 1fr; align-items:center; gap: 4px; margin-top: 10px; break-inside: avoid; }
+.reward .box { border: 1px solid var(--line); border-radius: 10px; padding: 9px; text-align: center; background:#fff; }
+.reward .box b { display:block; font-size: 10pt; }
+.reward .box span { font-size: 8pt; color: var(--ink2); }
+.reward .box.p { background: var(--pink); border-color: var(--pink); color:#fff; } .reward .box.p span { color: #ffe3ea; }
+.reward .ar { text-align:center; color: var(--ink3); font-weight: 800; }
+
+/* TARGET */
+.funnel { display:flex; flex-direction: column; gap: 4px; margin: 4px 0 8px; break-inside: avoid; }
+.frow { display:grid; grid-template-columns: 1fr 64px; align-items:center; gap: 8px; }
+.fbar { height: 28px; border-radius: 7px; color:#fff; display:flex; align-items:center; justify-content: space-between; padding: 0 11px; font-weight: 700; font-size: 9pt; }
+.fbar b { font-size: 13pt; font-weight: 800; }
+.rate { font-size: 8pt; color: var(--ink2); text-align: right; font-weight: 600; }
+.b1{background:#c9bbfb;color:var(--acc-d)} .b2{background:#a58af8} .b3{background:#8561f6} .b4{background:#6d3cf5} .b5{background:var(--pink)}
+.kpi { background: var(--acc-d); color:#fff; border-radius: 12px; padding: 13px 16px; break-inside: avoid; display:grid; grid-template-columns: 1fr auto; gap: 10px; align-items:center; }
+.kpi small { font-size: 8pt; letter-spacing: .12em; color: var(--gold); font-weight: 800; }
+.kpi .big { font-size: 12.5pt; font-weight: 800; margin-top: 2px; }
+.kpi .big em { font-style: normal; color: #ffb3c6; }
+.kpi .msg { font-size: 8.8pt; opacity: .85; margin-top: 3px; }
+.kpi .badge { border: 1px solid rgba(255,255,255,.3); border-radius: 10px; padding: 8px 12px; text-align:center; }
+.kpi .badge b { display:block; font-size: 20pt; line-height: 1.1; color: var(--gold); }
+.kpi .badge span { font-size: 7.8pt; opacity: .85; }
+
+/* schedule */
+.sched { display:grid; grid-template-columns: repeat(4,1fr); gap: 6px; break-inside: avoid; }
+.sched .wk { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.sched .wk .h { background: var(--acc); color:#fff; padding: 6px 10px; font-weight: 800; font-size: 9pt; }
+.sched .wk:nth-child(2) .h { background:#7d52f6; } .sched .wk:nth-child(3) .h { background:#8f6cf7; } .sched .wk:nth-child(4) .h { background: var(--pink); }
+.sched .wk .h span { font-weight: 500; opacity: .85; font-size: 7.8pt; margin-left: 4px; }
+.sched .wk ul { padding: 7px 10px 8px 22px; margin: 0; font-size: 8.5pt; }
+.sched .wk .goal { margin: 0 10px 9px; font-size: 8pt; background: var(--acc3); color: var(--acc-d); font-weight: 700; border-radius: 5px; padding: 3px 7px; }
+
+.risk td:first-child { width: 28%; font-weight: 700; }
+.risk td:nth-child(2) { color: var(--warn); width: 30%; }
+
+/* summary */
+.oneline { background: var(--ink); color:#fff; border-radius: 12px; padding: 14px 18px; font-size: 11pt; font-weight: 700; margin: 0 0 10px; break-inside: avoid; }
+.oneline small { color: var(--gold); font-size: 8pt; letter-spacing: .14em; display: block; margin-bottom: 3px; font-weight: 800; }
+.flow td.h { width: 74px; font-weight: 800; color: var(--acc); background: var(--acc3); }
+</style></head><body>
+
+<!-- ================= COVER ================= -->
+<div class="cover">
+  <div class="hero">
+    <div class="tag">TEAZR · 대학생 서포터즈 · 3주차 과제</div>
+    <h1>Writer<br>Acquisition <span>Plan</span></h1>
+    <p class="sub">가입자를 모으는 계획이 아니라, <b>계속 글을 쓰는 활성 라이터</b>를 확보하는 실행 계획</p>
+    <div class="thesis"><small>OUR STRATEGY</small>팔로워가 많은 사람보다, 이야기가 많고 꾸준히 콘텐츠를 만들 수 있는 대학생 크리에이터를 찾아 TEAZR의 지속적인 라이터로 확보한다.</div>
+  </div>
+  <div class="kpis">
+    <div><b>30<small>명</small></b><span>1:1 컨택</span></div>
+    <div><b>8<small>명</small></b><span>가입 유입</span></div>
+    <div><b>5<small>명</small></b><span>첫 글 작성</span></div>
+    <div class="main"><b>3<small>명+</small></b><span>2주 이상 지속 작성 (최종 KPI)</span></div>
+  </div>
+  <div class="toc">
+    <div><i>01</i><b>WHO</b><span>대학생 크리에이터 + 썰 많은 대학생</span></div>
+    <div><i>02</i><b>WHERE</b><span>인스타 → 커뮤니티 → 인맥 네트워크</span></div>
+    <div><i>03</i><b>HOW</b><span>체험 제안 → 혜택 → 첫 글 온보딩</span></div>
+    <div><i>04</i><b>WHY</b><span>수익 · 익명성 · 콘텐츠 확장 · 리워드</span></div>
+    <div><i>05</i><b>TARGET</b><span>퍼널 KPI · 4주 일정 · 리스크</span></div>
+  </div>
+</div>
+
+<!-- ================= WHO ================= -->
+<section>
+  <h2><span class="n">1</span><span class="k">WHO</span><span class="s">어떤 라이터를 데려올 것인가?</span></h2>
+  <p class="lead">핵심 기준은 <b>영향력이 아니라 지속성</b>. 이미 콘텐츠를 만드는 습관이 있거나, 풀어낼 이야기가 많은 사람을 우선한다.</p>
+
+  <div class="tier">
+    <div class="card top">
+      <h3><span class="rank r1">1순위</span>대학생 콘텐츠 크리에이터</h3>
+      <ul>
+        <li>인스타·블로그·틱톡에서 일상/연애/학교생활/인간관계 콘텐츠 제작</li>
+        <li>제작 습관이 있어 <span class="hl">TEAZR에서도 지속 작성 가능성 높음</span></li>
+        <li>팔로워 수보다 <b>꾸준히 올리는 마이크로 크리에이터</b> 우선</li>
+      </ul>
+      <div class="chips"><span class="chip">대학생 인스타 운영자</span><span class="chip">일상/공부/연애 계정</span><span class="chip">학교생활 콘텐츠</span><span class="chip">경험담 블로거</span><span class="chip">릴스/숏폼 제작자</span></div>
+      <div class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div><div class="meter-l">지속 작성 기대치</div>
+    </div>
+    <div class="card">
+      <h3><span class="rank r2">2순위</span>썰 소재가 많은 대학생</h3>
+      <ul><li>학교생활·알바·연애·동아리·군대·여행 경험이 풍부</li><li>TEAZR 핵심 카테고리와 직결</li></ul>
+      <div class="chips"><span class="chip pink">연애</span><span class="chip pink">일상</span><span class="chip pink">웃김</span><span class="chip pink">사건</span><span class="chip pink">공포</span></div>
+      <div class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div><div class="meter-l">지속 작성 기대치</div>
+    </div>
+    <div class="card">
+      <h3><span class="rank r3">3순위</span>글쓰기를 좋아하는 사람</h3>
+      <ul><li>블로그·에세이·SNS에 꾸준히 글을 쓰는 사람</li><li>긴 글보다 <b>짧은 이야기를 재미있게</b> 푸는 사람이 적합</li></ul>
+      <div class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div><div class="meter-l">지속 작성 기대치</div>
+    </div>
+  </div>
+
+  <h4>후보 선별 체크리스트 <span class="muted small" style="font-weight:500">— 컨택 전 5개 항목으로 빠르게 스코어링</span></h4>
+  <div class="tbl"><table>
+    <tr><th>항목</th><th>확인 방법</th><th class="c">점수</th></tr>
+    <tr><td><b>업로드 꾸준함</b></td><td>최근 2주 내 게시물·릴스가 꾸준히 올라오는가</td><td class="c"><span class="pt">+2</span></td></tr>
+    <tr><td><b>카테고리 적합성</b></td><td>연애·일상·웃김·사건·공포 중 하나 이상과 겹치는가</td><td class="c"><span class="pt">+2</span></td></tr>
+    <tr><td><b>스토리텔링</b></td><td>캡션·글에서 경험을 "썰" 형태로 풀어내는가</td><td class="c"><span class="pt">+1</span></td></tr>
+    <tr><td><b>소통 활발도</b></td><td>댓글·DM에 응답하는 편인가 (답장 가능성)</td><td class="c"><span class="pt">+1</span></td></tr>
+    <tr><td><b>익명 니즈</b></td><td>얼굴·실명 공개 없이 쓰고 싶어할 만한 소재가 있는가</td><td class="c"><span class="pt">+1</span></td></tr>
+  </table></div>
+  <div class="pass">✓ 7점 만점 중 <b>5점 이상</b>이면 우선 컨택 리스트에 등록 → 팀 공유 시트로 관리</div>
+</section>
+
+<!-- ================= WHERE ================= -->
+<section>
+  <h2><span class="n">2</span><span class="k">WHERE</span><span class="s">어디서 찾을 것인가?</span></h2>
+  <p class="lead">채널별 역할을 나누고, <b>컨택 30명</b>을 채널에 배분해 한 곳에 쏠리지 않게 운영한다.</p>
+
+  <div class="alloc">
+    <div style="width:50%;background:var(--acc)">인스타그램 15명</div>
+    <div style="width:33.3%;background:#8f6cf7">대학생 커뮤니티 10명</div>
+    <div style="width:16.7%;background:var(--pink)">인맥 5명</div>
+  </div>
+
+  <div class="grid3">
+    <div class="card">
+      <h3>🥇 인스타그램</h3>
+      <p class="small muted" style="margin-bottom:4px">가장 먼저 공략 · <b>1순위 타깃 발굴</b></p>
+      <div class="chips"><span class="chip">#대학생일상</span><span class="chip">#대학생공감</span><span class="chip">#대학생브이로그</span><span class="chip">#연애썰</span><span class="chip">#일상썰</span><span class="chip">#대학생인플루언서</span><span class="chip">#대학생크리에이터</span></div>
+      <p class="small" style="margin-top:6px">→ 게시물·릴스를 보고 <b>최근에도 꾸준히 올리는 계정</b>만 선별</p>
+    </div>
+    <div class="card">
+      <h3>🥈 대학생 커뮤니티</h3>
+      <p class="small muted" style="margin-bottom:4px"><b>2순위 타깃</b> · 소재 풍부</p>
+      <ul><li>에브리타임</li><li>대학별 커뮤니티</li><li>단체 채팅방 / 동아리</li></ul>
+      <p class="small" style="margin-top:6px">학교생활·연애·친구·과제·교수님·알바 등 TEAZR형 소재가 많음</p>
+    </div>
+    <div class="card">
+      <h3>🥉 기존 인맥 / 활동</h3>
+      <p class="small muted" style="margin-bottom:4px">신뢰 기반 · <b>빠른 첫 글 확보</b></p>
+      <ul><li>학교 동아리 · 서포터즈 · 스터디</li><li>콘텐츠 제작 / AI·개발 커뮤니티</li></ul>
+      <p class="small" style="margin-top:6px">"라이터 모집"보다 <b>직접 써볼 사람</b>을 찾는 방식으로 자연스럽게</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= HOW ================= -->
+<section class="pb">
+  <h2><span class="n">3</span><span class="k">HOW</span><span class="s">어떻게 컨택할 것인가?</span></h2>
+  <p class="lead">개인 DM으로 <b>경험 제안 → 혜택 설명 → 첫 글 온보딩 → 팔로업</b> 4단계로 진행한다.</p>
+  <div class="warn">⚠️ 처음부터 <b>"TEAZR 라이터 해주세요."</b>라고 하면 광고/협찬처럼 느껴질 수 있음 — 서비스 경험을 먼저 제안할 것</div>
+
+  <div class="timeline">
+    <div class="tl" data-s="1">
+      <div class="hd"><b>서비스 경험 제안</b><span>첫 DM</span></div>
+      <div class="dm me">안녕하세요! 현재 대학생 서포터즈로 TEAZR이라는 익명 썰 플랫폼을 직접 사용하고 있는데요. 평소 올려주시는 콘텐츠를 보다가 TEAZR과 잘 맞을 것 같아 연락드렸습니다!<br>혹시 평소 가지고 계셨던 일상이나 연애, 학교생활 관련 썰을 TEAZR에 익명으로 작성해보실 생각 있으실까요?
+        <span class="tip">💡 상대 게시물 중 하나를 구체적으로 언급하면 "복붙 DM" 느낌이 줄어듦 (예: "지난번 올리신 ○○ 이야기 보고…")</span></div>
+    </div>
+    <div class="tl" data-s="2">
+      <div class="hd"><b>혜택 설명</b><span>긍정 반응 시</span></div>
+      <div class="dm me">단순 가입만 요청드리는 게 아니라 실제로 글을 작성해주시는 라이터를 모집하고 있고, 활동을 통해 발생한 수익과 관련된 리워드도 제공될 예정입니다.<br>부담 없이 한두 개 정도 먼저 작성해보셔도 좋습니다!</div>
+    </div>
+    <div class="tl" data-s="3">
+      <div class="hd"><b>첫 글 온보딩</b><span>가입 직후</span></div>
+      <div class="dm">첫 글의 진입 장벽을 낮추는 단계. <b>상대 콘텐츠에 맞춘 썰 주제 2~3개</b>를 먼저 제안하고, 가입·작성 방법을 짧게 안내한다.
+        <span class="tip">💡 예: "평소 올리시는 알바 이야기 중 제일 황당했던 손님 썰 하나면 충분해요!"</span></div>
+    </div>
+    <div class="tl" data-s="4">
+      <div class="hd"><b>팔로업</b><span>무응답 3일 후 · 1회만</span></div>
+      <div class="dm">무응답이면 3일 후 한 번만 가볍게 리마인드. 첫 글을 올린 라이터에게는 <b>반응(조회·댓글)을 공유</b>하며 다음 글을 제안한다.</div>
+    </div>
+  </div>
+
+  <div class="vs"><div class="bad">"가입해주세요"</div><div class="arrow">→</div><div class="good">"당신이 가진 이야기를 콘텐츠로 만들어보세요"</div></div>
+
+  <h4>예상 질문 대응</h4>
+  <div class="tbl"><table class="faq">
+    <tr><td>광고/협찬 아니에요?</td><td>서포터즈로서 직접 써보고 추천하는 것이고, 가입만이 아니라 실제로 글을 써볼 사람을 찾는 중이라고 솔직하게 설명</td></tr>
+    <tr><td>진짜 익명이에요?</td><td>TEAZR는 익명 썰 플랫폼 — 인스타와 달리 정체를 드러내지 않고 이야기를 쓸 수 있다는 점을 강조</td></tr>
+    <tr><td>수익은 얼마나 돼요?</td><td>구체적 금액은 약속하지 않고, 활동에 따른 수익 리워드가 제공될 예정이라는 사실만 안내 (과장 금지)</td></tr>
+    <tr><td>시간이 없어요</td><td>이미 가진 경험 하나를 짧게 옮기는 것부터 — "한두 개만 먼저 써보셔도 좋아요"</td></tr>
+  </table></div>
+</section>
+
+<!-- ================= WHY ================= -->
+<section class="pb">
+  <h2><span class="n">4</span><span class="k">WHY</span><span class="s">왜 TEAZR에서 글을 써야 하는가?</span></h2>
+  <p class="lead">라이터에게는 <b>3가지 가치</b>, 서포터즈에게는 <b>지속 리워드</b>가 동기가 된다.</p>
+  <div class="grid2">
+    <div class="card benefit"><div class="ic">💰</div><div><h3>수익</h3><p>이벤트성 포인트가 아닌 <b>실제 콘텐츠 수익</b> 발생 가능성. 꾸준히 쓰는 라이터에게 가장 명확한 동기.</p></div></div>
+    <div class="card benefit"><div class="ic">🕵️</div><div><h3>익명성</h3><p>"내 정체는 공개하지 않고, <b>내 이야기는 콘텐츠로</b>." 인스타와 구별되는 TEAZR만의 핵심 장점.</p></div></div>
+    <div class="card benefit"><div class="ic">✍️</div><div><h3>콘텐츠 확장</h3><p>하나의 경험 → <b>인스타 콘텐츠 + TEAZR 썰</b>. 이미 만든 소재를 새 채널로 재활용.</p></div></div>
+    <div class="card benefit star"><div class="ic">🎁</div><div><h3>지속 리워드 <span class="chip pink">가장 중요</span></h3><p>데려온 라이터가 수익을 내면 <b>그 수익의 10%</b>를 확보한 서포터즈에게 <b>지속 배분</b>.</p></div></div>
+  </div>
+  <div class="reward">
+    <div class="box"><b>서포터즈</b><span>라이터 발굴·온보딩</span></div><div class="ar">→</div>
+    <div class="box"><b>라이터</b><span>꾸준한 작성 → 수익 발생</span></div><div class="ar">→</div>
+    <div class="box p"><b>수익의 10%</b><span>서포터즈에게 지속 배분</span></div>
+  </div>
+  <div class="vs"><div class="bad">10명 가입시키기</div><div class="arrow">→</div><div class="good">계속 글 쓰는 라이터 3~5명 확보</div></div>
+</section>
+
+<!-- ================= TARGET ================= -->
+<section>
+  <h2><span class="n">5</span><span class="k">TARGET</span><span class="s">숫자로 잡기</span></h2>
+  <p class="lead">최종 KPI는 가입자 수가 아니라 <b>2주 이상 지속 작성하는 라이터 수</b>.</p>
+
+  <div class="funnel">
+    <div class="frow"><div class="fbar b1" style="width:100%"><span>컨택</span><b>30</b></div><div class="rate">시작</div></div>
+    <div class="frow"><div class="fbar b2" style="width:80%"><span>답변</span><b>15</b></div><div class="rate">응답률 50%</div></div>
+    <div class="frow"><div class="fbar b3" style="width:62%"><span>가입</span><b>8</b></div><div class="rate">전환 53%</div></div>
+    <div class="frow"><div class="fbar b4" style="width:48%"><span>첫 글 작성</span><b>5</b></div><div class="rate">1차 목표 · 63%</div></div>
+    <div class="frow"><div class="fbar b5" style="width:36%"><span>2주+ 지속</span><b>3+</b></div><div class="rate">2차 목표 · 60%</div></div>
+  </div>
+  <div class="kpi">
+    <div><small>FINAL KPI</small><div class="big">컨택 30명 → 실제 작성자 5명 → <em>지속 작성자 3명</em></div><div class="msg">"가입자를 모으는 게 아니라, 활성 라이터를 확보하겠다."</div></div>
+    <div class="badge"><b>3+</b><span>지속 라이터</span></div>
+  </div>
+
+  <h4>4주 실행 일정 <span class="muted small" style="font-weight:500">— 제안안</span></h4>
+  <div class="sched">
+    <div class="wk"><div class="h">W1<span>발굴</span></div><ul><li>채널별 후보 리스트업</li><li>체크리스트 스코어링</li><li>첫 DM 발송 시작</li></ul><div class="goal">컨택 30명</div></div>
+    <div class="wk"><div class="h">W2<span>전환</span></div><ul><li>혜택 설명 · 가입 안내</li><li>무응답 팔로업 1회</li><li>첫 글 주제 제안</li></ul><div class="goal">가입 8 · 첫 글 5</div></div>
+    <div class="wk"><div class="h">W3<span>유지</span></div><ul><li>글 반응 공유</li><li>다음 썰 소재 제안</li><li>작성 현황 체크</li></ul><div class="goal">2번째 글 작성</div></div>
+    <div class="wk"><div class="h">W4<span>검증</span></div><ul><li>2주+ 지속 여부 확인</li><li>채널별 전환율 회고</li><li>발표 자료 정리</li></ul><div class="goal">지속 작성 3명+</div></div>
+  </div>
+
+  <h4>트래킹 &amp; 리스크 대응</h4>
+  <div class="tbl"><table class="risk">
+    <tr><th>리스크</th><th>신호</th><th>대응</th></tr>
+    <tr><td>DM 응답률 저조</td><td>응답률 30% 미만</td><td>DM 첫 문장 개인화 강화, 커뮤니티·인맥 채널 비중 확대</td></tr>
+    <tr><td>가입 후 미작성</td><td>가입 3일 내 첫 글 없음</td><td>구체적 썰 주제 1개를 콕 집어 재제안</td></tr>
+    <tr><td>1회 작성 후 이탈</td><td>7일간 추가 글 없음</td><td>첫 글 반응 공유 + 시리즈형 소재 제안</td></tr>
+    <tr><td>광고로 오해</td><td>거절·차단 발생</td><td>혜택보다 서비스 경험 제안을 먼저 — HOW 1단계 준수</td></tr>
+  </table></div>
+  <p class="small muted" style="margin-top:6px">📋 팀 공유 시트 컬럼: 이름(계정) · 채널 · 선별 점수 · 컨택일 · 응답 · 가입 · 첫 글일 · 누적 글 수 · 담당자</p>
+</section>
+
+<!-- ================= SUMMARY ================= -->
+<section style="break-inside:avoid">
+  <h2><span class="n">★</span><span class="k">전체 구조</span><span class="s">한 장 요약</span></h2>
+  <div style="height:8px"></div>
+  <div class="oneline"><small>OUR STRATEGY</small>팔로워가 많은 사람보다, 이야기가 많고 꾸준히 콘텐츠를 만들 수 있는 대학생 크리에이터를 찾아 TEAZR의 지속적인 라이터로 확보한다.</div>
+  <div class="tbl"><table class="flow">
+    <tr><td class="h">WHO</td><td>대학생 크리에이터 + 썰/경험이 많은 대학생 (선별 체크리스트 5점+)</td></tr>
+    <tr><td class="h">WHERE</td><td>인스타그램 15 → 대학생 커뮤니티 10 → 학교/서포터즈/스터디 네트워크 5</td></tr>
+    <tr><td class="h">HOW</td><td>개인 DM → 서비스 체험 제안 → 혜택 설명 → 첫 글 온보딩 → 팔로업</td></tr>
+    <tr><td class="h">WHY</td><td>익명으로 자유롭게 · 경험을 새 콘텐츠로 · 수익 발생 · 라이터 수익 10% 지속 리워드</td></tr>
+    <tr><td class="h">TARGET</td><td><b>30명 컨택 / 8명 유입 / 5명 첫 글 / 3명 지속 작성</b></td></tr>
+  </table></div>
+</section>
+
+</body></html>
